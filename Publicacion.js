@@ -8,7 +8,7 @@ export default class Publicacion {
   }
 
   mostrarResumen() {
-    return `${this.titulo} - ${this.autor}`;
+    return `${this.titulo} - ${this.autor.nombre} - (${this.autor.email})`;
   }
 
   estaActiva() {
