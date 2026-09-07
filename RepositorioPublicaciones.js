@@ -18,4 +18,12 @@ export default class RepositorioPublicaciones {
   cantidadTotal() {
     return this.publicaciones.length;
   }
+
+  listarResumenes() {
+    return this.publicaciones.map((pub) => pub.mostrarResumen());
+  }
+
+  filtrarPorTipo(claseConstructor) {
+    return this.publicaciones.filter((pub) => pub instanceof claseConstructor);
+  }
 }

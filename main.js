@@ -6,64 +6,51 @@ import RepositorioPublicaciones from "./RepositorioPublicaciones.js";
 
 const repositorio = new RepositorioPublicaciones();
 
-const usuario1 = new Usuario("Juan Pérez", "juanperez@gmail.com");
-const usuario2 = new Usuario("María López", "marialopez@gmail.com");
-const usuario3 = new Usuario("Carlos García", "carlosgarcia@gmail.com");
+const u1 = new Usuario("Juan Pérez", "juan@mail.com");
+const u2 = new Usuario("María López", "maria@mail.com");
+const u3 = new Usuario("Carlos Gómez", "carlos@mail.com");
 
-// Reemplazo de instancias sueltas de Publicacion por subclases mezcladas
-const publicacion1 = new PublicacionVenta(
-  "Mi primer post",
-  "Este es el contenido de mi primer post.",
-  usuario1,
-  1500
+const venta1 = new PublicacionVenta(
+  "Apuntes de Álgebra",
+  "Resumen parcial",
+  u1,
+  1200,
 );
-
-const publicacion2 = new PublicacionServicio(
-  "Mi segundo post",
-  "Este es el contenido de mi segundo post.",
-  usuario2,
+const servicio1 = new PublicacionServicio(
+  "Clases de JS",
+  "Nivel inicial",
+  u2,
   "virtual",
-  60
+  60,
 );
-
-const publicacion3 = new PublicacionVenta(
-  "Mi tercer post",
-  "Este es el contenido de mi tercer post.",
-  usuario3,
-  3200
-);
-
-const publicacion4 = new PublicacionServicio(
-  "Mi cuarto post",
-  "Este es el contenido de mi cuarto post.",
-  usuario1,
+const servicio2 = new PublicacionServicio(
+  "Clases de Python",
+  "Nivel intermedio",
+  u3,
   "presencial",
-  120
+  90,
 );
+const venta2 = new PublicacionVenta("Calculadora", "Casio fx-991", u1, 4500);
 
-const publicacion5 = new PublicacionVenta(
-  "Mi quinto post",
-  "Este es el contenido de mi quinto post.",
-  usuario2,
-  500
-);
-
+repositorio.agregar(venta1);
+repositorio.agregar(servicio1);
+repositorio.agregar(servicio2);
+repositorio.agregar(venta2);
 
 
-repositorio.agregar(publicacion1);
-repositorio.agregar(publicacion2);
-repositorio.agregar(publicacion3);
-repositorio.agregar(publicacion4);
-repositorio.agregar(publicacion5);
+console.log("--- Resúmenes (Polimorfismo con .map()) ---");
+const resumenes = repositorio.listarResumenes();
+console.log(resumenes);
 
-const publicaciones = [
-  publicacion1,
-  publicacion2,
-  publicacion3,
-  publicacion4,
-  publicacion5,
-];
 
-publicaciones.forEach((publicacion) => {
-  console.log(publicacion.mostrarResumen());
-});
+console.log("\n--- Solo PublicacionVenta ---");
+const soloVentas = repositorio.filtrarPorTipo(PublicacionVenta);
+soloVentas.forEach((p) => console.log(`- ${p.mostrarResumen()}`));
+
+console.log("\n--- Solo PublicacionServicio ---");
+const soloServicios = repositorio.filtrarPorTipo(PublicacionServicio);
+soloServicios.forEach((p) => console.log(`- ${p.mostrarResumen()}`));
+
+console.log("\n--- Por superclase Publicacion ---");
+const todas = repositorio.filtrarPorTipo(Publicacion);
+console.log(`Total: ${todas.length}`);
