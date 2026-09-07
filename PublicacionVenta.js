@@ -6,4 +6,9 @@ export default class PublicacionVenta extends Publicacion {
     this.precio = precio;
     this.stock = 1;
   }
+
+  mostrarResumen() {
+    const base = super.mostrarResumen();
+    return `${base} -$${this.precio}`;
+  }
 }

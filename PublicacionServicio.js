@@ -6,4 +6,9 @@ export default class PublicacionServicio extends Publicacion {
     this.modalidad = modalidad;
     this.duracionMinutos = duracionMinutos;
   }
+
+  mostrarResumen() {
+    const base = super.mostrarResumen();
+    return `${base} (${this.modalidad}, ${this.duracionMinutos}min)`;
+  }
 }

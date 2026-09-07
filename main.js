@@ -48,7 +48,7 @@ const publicacion5 = new PublicacionVenta(
   500
 );
 
-publicacion1.activa = false; // Desactivar la primera publicación
+
 
 repositorio.agregar(publicacion1);
 repositorio.agregar(publicacion2);
@@ -63,3 +63,7 @@ const publicaciones = [
   publicacion4,
   publicacion5,
 ];
+
+publicaciones.forEach((publicacion) => {
+  console.log(publicacion.mostrarResumen());
+});
