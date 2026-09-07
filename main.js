@@ -1,6 +1,8 @@
 import Usuario from "./Usuario.js";
 import Publicacion from "./Publicacion.js";
-import RepositorioPublicaciones from "./Repositoriopublicaciones.js";
+import PublicacionVenta from "./PublicacionVenta.js";
+import PublicacionServicio from "./PublicacionServicio.js";
+import RepositorioPublicaciones from "./RepositorioPublicaciones.js";
 
 const repositorio = new RepositorioPublicaciones();
 
@@ -8,32 +10,42 @@ const usuario1 = new Usuario("Juan Pérez", "juanperez@gmail.com");
 const usuario2 = new Usuario("María López", "marialopez@gmail.com");
 const usuario3 = new Usuario("Carlos García", "carlosgarcia@gmail.com");
 
-const publicacion1 = new Publicacion(
+// Reemplazo de instancias sueltas de Publicacion por subclases mezcladas
+const publicacion1 = new PublicacionVenta(
   "Mi primer post",
   "Este es el contenido de mi primer post.",
   usuario1,
+  1500
 );
-const publicacion2 = new Publicacion(
+
+const publicacion2 = new PublicacionServicio(
   "Mi segundo post",
   "Este es el contenido de mi segundo post.",
   usuario2,
+  "virtual",
+  60
 );
-const publicacion3 = new Publicacion(
+
+const publicacion3 = new PublicacionVenta(
   "Mi tercer post",
   "Este es el contenido de mi tercer post.",
   usuario3,
+  3200
 );
 
-const publicacion4 = new Publicacion(
+const publicacion4 = new PublicacionServicio(
   "Mi cuarto post",
   "Este es el contenido de mi cuarto post.",
   usuario1,
+  "presencial",
+  120
 );
 
-const publicacion5 = new Publicacion(
+const publicacion5 = new PublicacionVenta(
   "Mi quinto post",
   "Este es el contenido de mi quinto post.",
   usuario2,
+  500
 );
 
 publicacion1.activa = false; // Desactivar la primera publicación
@@ -51,44 +63,3 @@ const publicaciones = [
   publicacion4,
   publicacion5,
 ];
-
-const nombres = ['Juan Pérez'];
-
-nombres.forEach(nombre => {
-  const resultados = repositorio.buscarPorUsuario(nombre);
-  console.log(`\n--- Publicaciones de "${nombre}" (Total: ${resultados.length}) ---`);
-  resultados.forEach(p => console.log(`- ${p.mostrarResumen()}`));
-});
-
-
-console.log(`\n--- Desafío: Cantidad Total ---`);
-console.log(`Total de publicaciones en el repositorio: ${repositorio.cantidadTotal()}`);
-
-console.log(`\n--- Desafío: Publicaciones Activas ---`);
-const activas = repositorio.filtrarActivas();
-console.log(`Cantidad activas: ${activas.length}`);
-
-// console.log("--- 1. Listado de Publicaciones (forEach) ---");
-// publicaciones.forEach((pub) => {
-//   console.log(pub.mostrarResumen());
-// });
-
-// const publicacionesActivas = publicaciones.filter((pub) => pub.estaActiva());
-
-// console.log("\n--- 2. Publicaciones Activas (filter) ---");
-// publicacionesActivas.forEach((pub) => {
-//   console.log(`- ${pub.mostrarResumen()}`);
-// });
-
-// const nombreBuscado = "María López";
-// const primeraPublicacion = publicaciones.find(
-//   (pub) => pub.autor.nombre === nombreBuscado,
-// );
-
-// console.log(`\n--- 3. Primera publicación de "${nombreBuscado}" (find) ---`);
-// if (primeraPublicacion) {
-//   console.log(`Encontrada: ${primeraPublicacion.mostrarResumen()}`);
-//   console.log(`Descripción: ${primeraPublicacion.descripcion}`);
-// } else {
-//   console.log(`No se encontró ninguna publicación para ${nombreBuscado}.`);
-// }
