@@ -15,3 +15,4 @@ export default class Publicacion {
     return this.activa;
   }
 }
+

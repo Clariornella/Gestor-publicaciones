@@ -4,53 +4,29 @@ import PublicacionVenta from "./PublicacionVenta.js";
 import PublicacionServicio from "./PublicacionServicio.js";
 import RepositorioPublicaciones from "./RepositorioPublicaciones.js";
 
+function validarPublicacion(publicacion, reglas) {
+  if (publicacion.titulo.length < reglas.minTitulo) {
+    return false;
+  }
+  return true;
+}
+
 const repositorio = new RepositorioPublicaciones();
 
-const u1 = new Usuario("Juan Pérez", "juan@mail.com");
-const u2 = new Usuario("María López", "maria@mail.com");
-const u3 = new Usuario("Carlos Gómez", "carlos@mail.com");
+const autor1 = new Usuario("Juan Pérez", "juan@mail.com");
 
-const venta1 = new PublicacionVenta(
-  "Apuntes de Álgebra",
-  "Resumen parcial",
-  u1,
-  1200,
+const p1 = new Publicacion(
+  "JavaScript",
+  "Guia rapida",
+  autor1,
 );
-const servicio1 = new PublicacionServicio(
-  "Clases de JS",
-  "Nivel inicial",
-  u2,
-  "virtual",
-  60,
-);
-const servicio2 = new PublicacionServicio(
-  "Clases de Python",
-  "Nivel intermedio",
-  u3,
-  "presencial",
-  90,
-);
-const venta2 = new PublicacionVenta("Calculadora", "Casio fx-991", u1, 4500);
-
-repositorio.agregar(venta1);
-repositorio.agregar(servicio1);
-repositorio.agregar(servicio2);
-repositorio.agregar(venta2);
 
 
-console.log("--- Resúmenes (Polimorfismo con .map()) ---");
-const resumenes = repositorio.listarResumenes();
-console.log(resumenes);
+const reglas = { minTitulo: 5 };
 
-
-console.log("\n--- Solo PublicacionVenta ---");
-const soloVentas = repositorio.filtrarPorTipo(PublicacionVenta);
-soloVentas.forEach((p) => console.log(`- ${p.mostrarResumen()}`));
-
-console.log("\n--- Solo PublicacionServicio ---");
-const soloServicios = repositorio.filtrarPorTipo(PublicacionServicio);
-soloServicios.forEach((p) => console.log(`- ${p.mostrarResumen()}`));
-
-console.log("\n--- Por superclase Publicacion ---");
-const todas = repositorio.filtrarPorTipo(Publicacion);
-console.log(`Total: ${todas.length}`);
+if (validarPublicacion(p1, reglas)) {
+  repositorio.agregar(p1);
+  console.log("Publicación agregada correctamente.");
+} else {
+  console.log("La publicación no cumple con las reglas de validación.");
+}
