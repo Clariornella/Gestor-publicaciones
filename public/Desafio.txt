@@ -1,0 +1,18 @@
+Este código tiene tres problemas. Encuéntrenlos, corríjanlos y expliquen el efecto de cada
+uno.
+
+function manejarBaja(evento) {
+ publicacion.activa = false;
+ estado.textContent = "Inactiva";
+}
+Problema 3: El manejador del DOM modifica directamente un atributo interno de la instancia en lugar de delegar el comportamiento a la clase del modelo. Esto saltea validaciones o lógica de negocio que la clase Publicacion pueda tener en su método darDeBaja().
+Correcion 3: Delegar la acción llamando al método del dominio: publicacion.darDeBaja().
+
+boton.addEventListener("click", manejarBaja());
+Problema 1: Al escribir los paréntesis (), la función se ejecuta instantáneamente al cargar la página en lugar de esperar el clic del usuario.
+Correccion 1: Pasar la referencia de la función sin paréntesis (manejarBaja).
+
+boton.addEventListener("click", manejarBaja);
+boton.addEventListener("click", manejarBaja);
+Problema 2: Aunque el navegador ignora registros exactamente idénticos sobre un mismo elemento, mantener múltiples llamadas ensucia el código, crea confusión y puede disparar ejecuciones repetidas si se usan funciones anónimas distintas.
+Correcion 2: Dejar un único registro para el evento.

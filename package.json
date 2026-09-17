@@ -2,9 +2,9 @@
   "name": "gestor-publicaciones",
   "version": "1.0.0",
   "description": "",
-  "main": "hola.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/Clariornella/Gestor-publicaciones/issues"
   },
-  "homepage": "https://github.com/Clariornella/Gestor-publicaciones#readme"
+  "homepage": "https://github.com/Clariornella/Gestor-publicaciones#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }
