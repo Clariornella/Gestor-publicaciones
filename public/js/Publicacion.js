@@ -5,6 +5,15 @@ export default class Publicacion {
     this.autor = autor;
     this.fechaPublicacion = new Date();
     this.activa = true;
+    this.destacado = false;
+  }
+
+  destacar() {
+    this.destacado = true;
+  }
+
+  opacar() {
+    this.destacado = false;
   }
 
   mostrarResumen() {
@@ -15,6 +24,8 @@ export default class Publicacion {
     return this.activa;
   }
 
-  darDeBaja() { this.activa = false; }
+  darDeBaja() { 
+    this.activa = false; 
+  }
 }
 

@@ -1,6 +1,7 @@
 import Usuario from "./Usuario.js";
 import PublicacionVenta from "./PublicacionVenta.js";
 import PublicacionServicio from "./PublicacionServicio.js";
+import RepositorioPublicaciones from "./RepositorioPublicaciones.js";
 
 const titulo = document.querySelector("#titulo");
 const autor = document.querySelector("#autor");
@@ -13,20 +14,10 @@ const formulario = document.querySelector("#form-publicacion");
 const descripcion = document.querySelector("#descripcion");
 const listaPublicaciones = document.querySelector("#lista-publicaciones");
 
-// punto 2: muestra en consola los eventos input y change de los campos título y tipo.
-function observarEvento(evento) {
-  console.table({
-    type: evento.type,
-    target: evento.target.id,
-    currentTarget: evento.currentTarget.id,
-    timeStamp: Math.round(evento.timeStamp),
-  });
-}
+// Instancia del repositorio
+const repositorio = new RepositorioPublicaciones();
 
-titulo.addEventListener("input", observarEvento);
-tipo.addEventListener("change", observarEvento);
-
-// punto 3: muestra en la sección de vista previa el título, autor y tipo de publicación.
+// Vista previa
 function actualizarVistaPrevia() {
   const nombre = autor.value || "Autor";
   const texto = titulo.value || "Sin título";
@@ -36,39 +27,46 @@ function actualizarVistaPrevia() {
 titulo.addEventListener("input", actualizarVistaPrevia);
 autor.addEventListener("input", actualizarVistaPrevia);
 tipo.addEventListener("change", actualizarVistaPrevia);
-
 actualizarVistaPrevia();
 
-// punto 4: muestra los campos específicos según el tipo de publicación.
+// Campos específicos según tipo
 function actualizarCamposEspecificos() {
   if (tipo.value === "venta") {
     camposEspecificos.innerHTML = `
- <input id="precio" type="number" placeholder="Precio">
- <input id="stock" type="number" value="1">`;
+      <div>
+        <label for="precio">Precio:</label>
+        <input id="precio" type="number" placeholder="Precio" required>
+      </div>
+    `;
   } else {
     camposEspecificos.innerHTML = `
- <select id="modalidad">
- <option>presencial</option><option>virtual</option>
- </select>
- <input id="duracion" type="number" placeholder="Minutos">`;
+      <div>
+        <label for="modalidad">Modalidad:</label>
+        <select id="modalidad">
+          <option value="presencial">Presencial</option>
+          <option value="remoto">Remoto</option>
+        </select>
+      </div>
+      <br>
+      <div>
+        <label for="duracion">Duración (minutos):</label>
+        <input id="duracion" type="number" placeholder="Duración" required>
+      </div>
+    `;
   }
 }
 tipo.addEventListener("change", actualizarCamposEspecificos);
 actualizarCamposEspecificos();
 
-// punto 5: muestra un mensaje de ayuda cuando el campo email está enfocado y lo oculta cuando pierde el foco.
-function mostrarAyudaEmail() {
+// Ayuda email
+email.addEventListener("focus", () => {
   ayudaEmail.textContent = "Usá un email válido del autor";
-}
-function ocultarAyudaEmail() {
+});
+email.addEventListener("blur", () => {
   ayudaEmail.textContent = "";
-}
-email.addEventListener("focus", mostrarAyudaEmail);
-email.addEventListener("blur", ocultarAyudaEmail);
+});
 
-// punto 6: al enviar el formulario, crea una publicación y la agrega a un array de publicaciones.
-const publicaciones = [];
-
+// Creación del objeto de dominio
 function crearPublicacionDesdeFormulario() {
   const usuario = new Usuario(autor.value, email.value);
   if (tipo.value === "venta") {
@@ -87,46 +85,77 @@ function crearPublicacionDesdeFormulario() {
     Number(document.querySelector("#duracion").value),
   );
 }
-function agregarTarjeta(publicacion) {
-  const tarjeta = document.createElement("article");
-  tarjeta.classList.add("tarjeta");
 
-  const parrafoResumen = document.createElement("p");
-  // Polimorfismo: muestra el resumen según si es Venta o Servicio
-  parrafoResumen.textContent = publicacion.mostrarResumen();
+// Parte 2: Renderizar publicaciones con data-id y data-accion
+function renderizarPublicaciones() {
+  listaPublicaciones.innerHTML = "";
 
-  const parrafoEstado = document.createElement("p");
-  parrafoEstado.innerHTML = `<strong>Estado:</strong> <span class="estado">${publicacion.estaActiva() ? "Activa" : "Inactiva"}</span>`;
+  repositorio.publicaciones.forEach((pub, index) => {
+    const tarjeta = document.createElement("article");
+    tarjeta.classList.add("tarjeta");
+    tarjeta.dataset.id = index; // data-id en la tarjeta
 
-  const botonBaja = document.createElement("button");
-  botonBaja.type = "button";
-  botonBaja.textContent = "Dar de baja";
+    const parrafoResumen = document.createElement("p");
+    parrafoResumen.textContent = pub.mostrarResumen();
 
-  function manejarBaja(evento) {
-    console.log(evento.type, evento.target);
-    publicacion.darDeBaja(); // Lógica en el modelo
-    parrafoEstado.querySelector(".estado").textContent = "Inactiva";
-    botonBaja.disabled = true; // Deshabilita para evitar múltiples clics
-  }
+    const parrafoEstado = document.createElement("p");
+    parrafoEstado.innerHTML = `<strong>Estado:</strong> <span class="estado">${pub.estaActiva() ? "Activa" : "Inactiva"}</span>`;
 
-  botonBaja.addEventListener("click", manejarBaja);
+    const parrafoDestacado = document.createElement("p");
+    parrafoDestacado.innerHTML = `<strong>Destacado:</strong> <span class="destacado">${pub.destacado ? "Sí" : "No"}</span>`;
 
-  tarjeta.appendChild(parrafoResumen);
-  tarjeta.appendChild(parrafoEstado);
-  tarjeta.appendChild(botonBaja);
+    // Botón Destacar con data-accion="destacar"
+    const botonDestacar = document.createElement("button");
+    botonDestacar.type = "button";
+    botonDestacar.textContent = "Destacar";
+    botonDestacar.dataset.accion = "destacar";
 
-  listaPublicaciones.appendChild(tarjeta);
+    // Botón Dar de baja con data-accion="baja"
+    const botonBaja = document.createElement("button");
+    botonBaja.type = "button";
+    botonBaja.textContent = "Dar de baja";
+    botonBaja.dataset.accion = "baja";
+
+    tarjeta.appendChild(parrafoResumen);
+    tarjeta.appendChild(parrafoEstado);
+    tarjeta.appendChild(parrafoDestacado);
+    tarjeta.appendChild(botonDestacar);
+    tarjeta.appendChild(botonBaja);
+
+    listaPublicaciones.appendChild(tarjeta);
+  });
 }
 
+// Manejo del formulario
 function manejarEnvio(evento) {
-  evento.preventDefault();
+  evento.preventDefault(); // Evita la acción nativa de recargar/navegar
+
   const publicacion = crearPublicacionDesdeFormulario();
-  publicaciones.push(publicacion);
-  agregarTarjeta(publicacion);
+  repositorio.agregar(publicacion); // Agrega al repositorio de dominio
+
   formulario.reset();
   actualizarCamposEspecificos();
   actualizarVistaPrevia();
+  renderizarPublicaciones(); // Redibuja la lista con los atributos data-*
 }
+
 formulario.addEventListener("submit", manejarEnvio);
 
+function manejarAccion(evento) {
+  const boton = evento.target.closest("button[data-accion]");
+  if (!boton || !listaPublicaciones.contains(boton)) return;
 
+  const tarjeta = boton.closest("[data-id]");
+  const id = Number(tarjeta.dataset.id);
+
+  const accion = boton.dataset.accion;
+
+  const publicacion = repositorio.publicaciones[id];
+  if (!publicacion) return;
+
+  if (accion === "baja") publicacion.darDeBaja();
+  if (accion === "destacar") publicacion.destacar();
+
+  renderizarPublicaciones();
+}
+listaPublicaciones.addEventListener("click", manejarAccion);

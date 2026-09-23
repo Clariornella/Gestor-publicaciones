@@ -1,0 +1,19 @@
+// Línea 1:
+lista.addEventListener("click", manejarAccion());
+
+Al colocar parentesis la funcion se ejecuta en el instante, en lugar de pasarlo como referencia para que se invoque el clic.
+
+// Línea 2:
+lista.addEventListener("click", evento => manejarAccion(evento));
+
+Al escribir una funcion inline (=>) se crea un nuevo objeto de funcion en cada ejecucion. Lo cual hace que se registren multiples handlers independientes que ejecutan la misma accion repetidamente con cada clic.
+
+// Línea 3:
+lista.removeEventListener("click", evento => manejarAccion(evento));
+
+Como la función flecha de la Línea 3 tiene una referencia de memoria diferente a la declarada en la Línea 2, el listener previo no se elimina y queda activo.
+
+///// FORMA CORRECTA /////
+
+lista.addEventListener("click", manejarAccion);
+lista.removeEventListener("click", manejarAccion);

@@ -1,0 +1,28 @@
+[1. Fase de Captura]
+Window
+  └── Document
+        └── <html>
+              └── <body>
+                    └── <main>
+                          └── <section>
+                                └── <div id="lista-publicaciones">
+                                      └── <article class="tarjeta">
+                                            └── <button> (Objetivo)
+
+[2. Fase de Objetivo (Target)]
+Se alcanza el elemento que originó el evento: <button type="button" data-accion="baja">Dar de baja</button>
+
+[3. Fase de Burbujeo (Bubbling)]
+<button data-accion="baja">
+  └──> <article class="tarjeta">
+        └──> <div id="lista-publicaciones">  <--- Aquí está el listener
+              └──> <section>
+                    └──> <main>
+                          └──> <body>
+                                └──> <html>
+                                      └──> Document
+                                            └──> Window
+
+TRAYECTO DIRECTO DESDE EL BOTON HASTA EL CONTENEDOR DURANTE EL BURBUJEO:
+
+<BUTTON> --> <ARTICLE CLASS: "TARJETA"> --> <DIV ID="LISTA-PUBLICACIONES">
