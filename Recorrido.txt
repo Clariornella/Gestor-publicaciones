@@ -1,28 +1,64 @@
-[1. Fase de Captura]
-Window
-  └── Document
-        └── <html>
-              └── <body>
-                    └── <main>
-                          └── <section>
-                                └── <div id="lista-publicaciones">
-                                      └── <article class="tarjeta">
-                                            └── <button> (Objetivo)
+[ ESTADO INICIAL ]
+ - Vista/Lista: Vacía o con datos previos
+ - Botón "Actualizar": Habilitado (disabled = false)
+ - Mensaje 'estado': "" o "Esperando actualización..."
+        │
+        │  (1) Clic del usuario en el botón "Actualizar"
+        ▼
+[ ESTADO CARGANDO ]
+ - Botón "Actualizar": Deshabilitado (disabled = true)
+ - Mensaje 'estado': "Cargando publicaciones..."
+ - Petición asíncrona: fetch('/api/publicaciones') / esperar()
+        │
+   ┌────┴────────────────────────┐
+   │ ¿Respuesta exitosa?         │
+   │                             │
+   ├──────────────┐              ├──────────────┐
+  SÍ             NO             SÍ             NO
+   │                             │
+   ▼                             ▼
+[ ESTADO ÉXITO ]              [ ESTADO ERROR ]
+ - Deserializar JSON          - Capturado en catch(error)
+ - renderizar(publicaciones)  - Mensaje 'estado': 
+ - Mensaje 'estado':             "Error: <mensaje>"
+    "X publicaciones recibidas"
+   │                             │
+   └──────────────┬──────────────┘
+                  │
+                  ▼ (Bloque finally)
+         [ RECUPERACIÓN / LISTO ]
+         - Botón "Actualizar": Habilitado nuevamente
 
-[2. Fase de Objetivo (Target)]
-Se alcanza el elemento que originó el evento: <button type="button" data-accion="baja">Dar de baja</button>
 
-[3. Fase de Burbujeo (Bubbling)]
-<button data-accion="baja">
-  └──> <article class="tarjeta">
-        └──> <div id="lista-publicaciones">  <--- Aquí está el listener
-              └──> <section>
-                    └──> <main>
-                          └──> <body>
-                                └──> <html>
-                                      └──> Document
-                                            └──> Window
 
-TRAYECTO DIRECTO DESDE EL BOTON HASTA EL CONTENEDOR DURANTE EL BURBUJEO:
+//Resumen de estados y textos en estado.textContent//
 
-<BUTTON> --> <ARTICLE CLASS: "TARJETA"> --> <DIV ID="LISTA-PUBLICACIONES">
+/Estado Inicial:/
+
+Momento: Antes de interactuar con el botón o al cargar la aplicación.
+
+Botón Actualizar: Habilitado.
+
+Texto: "" (vacío) o "Listo para cargar".
+
+/Estado Cargando:/
+
+Momento: Inmediatamente después del evento click, antes de que resuelva la promesa asíncrona.
+
+Botón Actualizar: Deshabilitado (boton.disabled = true) para evitar peticiones duplicadas.
+
+Texto: "Cargando publicaciones..."
+
+/Estado Éxito:/
+
+Momento: La promesa se resolvió (ok: true), los datos se procesaron y se renderizó el DOM.
+
+Texto: "${publicaciones.length} publicaciones cargadas" (o "Carga completa").
+
+/Estado Error:/x
+
+Momento: La promesa falló, el servidor devolvió un error (!respuesta.ok) o hubo un corte de red (bloque catch).
+
+Texto: "Error: ${error.message}" (informa el fallo y permite reintentar).
+
+(En el bloque finally, el botón "Actualizar" vuelve a habilitarse: boton.disabled = false).

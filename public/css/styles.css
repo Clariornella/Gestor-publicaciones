@@ -1,0 +1,209 @@
+:root {
+  --bg-app: #f9f8f6;            /* Crema muy suave de fondo */
+  --bg-card: #ffffff;
+  --text-main: #4a4453;         /* Gris violáceo suave (buen contraste) */
+  --text-muted: #8b8594;
+  --primary-pastel: #8da4c4;    /* Azul/lavanda pastel */
+  --primary-hover: #7b94b5;
+  --success-pastel: #88bfa8;    /* Verde salvia pastel */
+  --success-bg: #f0f7f4;
+  --error-pastel: #e5989b;      /* Rosa/coral pastel */
+  --error-bg: #fff0f1;
+  --accent-destacada: #fde8cd;  /* Durazno cálido para destacadas */
+  --border-subtle: #e5e2ea;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  max-width: 580px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+br { display: none; }
+
+header h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Tarjetas contenedor */
+form, section {
+  background: var(--bg-card);
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 2px 8px rgba(141, 164, 196, 0.08);
+}
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #5d5668;
+}
+
+/* Campos de entrada */
+form > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+input, select, textarea {
+  padding: 0.45rem 0.65rem;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 8px;
+  background-color: #faf9fb;
+  transition: all 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary-pastel);
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(141, 164, 196, 0.2);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Validaciones reactivas */
+.valido {
+  border-color: var(--success-pastel) !important;
+  background-color: var(--success-bg);
+}
+
+.invalido {
+  border-color: var(--error-pastel) !important;
+  background-color: var(--error-bg);
+}
+
+span[id^="error-"] {
+  color: #c46d70;
+  font-size: 0.78rem;
+  font-weight: 500;
+  display: block;
+}
+
+p:has(#contador) {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+/* Botones con estilo suave */
+button {
+  cursor: pointer;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease, transform 0.05s;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button[type="submit"] {
+  background: var(--primary-pastel);
+  color: #ffffff;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#btn-actualizar {
+  background-color: #edf0f5;
+  color: var(--text-main);
+}
+
+#btn-actualizar:hover:not(:disabled) {
+  background-color: #e0e6ee;
+}
+
+#btn-error {
+  background: var(--error-bg);
+  color: #ba5d60;
+  border-color: #f7d2d4;
+}
+
+#btn-error:hover:not(:disabled) {
+  background: #ffe3e5;
+}
+
+/* Vista previa reactiva y Estado */
+#vista-previa {
+  background: #f2f5f9;
+  border-left: 4px solid var(--primary-pastel);
+  padding: 0.55rem 0.8rem;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.85rem;
+  color: #556b82;
+}
+
+#estado {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0.6rem 0;
+  font-style: italic;
+}
+
+/* Publicaciones dinámicas */
+#lista-publicaciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tarjeta-publicacion {
+  border: 1px solid var(--border-subtle);
+  background: #ffffff;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* Tarjeta destacada en amarillo/durazno pastel */
+.tarjeta-publicacion.destacada {
+  border-color: #f7cf99;
+  background: var(--accent-destacada);
+}

@@ -1,3 +1,7 @@
+import Usuario from "./Usuario.js";
+import PublicacionVenta from "./PublicacionVenta.js";
+import PublicacionServicio from "./PublicacionServicio.js";
+
 export default class RepositorioPublicaciones {
   constructor() {
     this.publicaciones = [];
@@ -25,5 +29,37 @@ export default class RepositorioPublicaciones {
 
   filtrarPorTipo(claseConstructor) {
     return this.publicaciones.filter((pub) => pub instanceof claseConstructor);
+  }
+
+  cargarDesde(datos) {
+    this.publicaciones = datos.map((item) => {
+      const usuario = new Usuario(
+        item.autor || item.usuario?.nombre,
+        item.email || item.usuario?.email,
+      );
+
+      if (item.tipo === "venta") {
+        const venta = new PublicacionVenta(
+          item.titulo,
+          item.descripcion,
+          usuario,
+          item.precio,
+        );
+        if (item.activa === false) venta.darDeBaja();
+        if (item.destacado) venta.destacar();
+        return venta;
+      } else {
+        const servicio = new PublicacionServicio(
+          item.titulo,
+          item.descripcion,
+          usuario,
+          item.modalidad,
+          item.duracion,
+        );
+        if (item.activa === false) servicio.darDeBaja();
+        if (item.destacado) servicio.destacar();
+        return servicio;
+      }
+    });
   }
 }

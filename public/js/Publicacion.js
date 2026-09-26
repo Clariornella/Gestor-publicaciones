@@ -8,6 +8,11 @@ export default class Publicacion {
     this.destacado = false;
   }
 
+  get resumen() {
+    const estadoTexto = this.activa ? 'Activa' : 'Inactiva';
+    return `${this.usuario.nombre} — ${this.titulo} (${estadoTexto})`;
+  }
+
   destacar() {
     this.destacado = true;
   }
@@ -24,8 +29,7 @@ export default class Publicacion {
     return this.activa;
   }
 
-  darDeBaja() { 
-    this.activa = false; 
+  darDeBaja() {
+    this.activa = false;
   }
 }
-

@@ -17,9 +17,16 @@
 
         <div>
           <label for="titulo">Título:</label>
-          <input type="text" id="titulo" name="titulo" placeholder="Título" required />
+          <input
+            type="text"
+            id="titulo"
+            name="titulo"
+            placeholder="Título"
+            required
+          />
         </div>
-        <br><br>
+        <span id="error-titulo"></span>
+        <br /><br />
         <div>
           <label for="descripcion">Descripción:</label>
           <textarea
@@ -28,20 +35,37 @@
             rows="3"
             placeholder="Descripción"
           ></textarea>
+          <p>Caracteres: <span id="contador">0</span></p>
         </div>
-        <br><br>
+        <br /><br />
         <div>
           <label for="autor">Autor:</label>
-          <input type="text" id="autor" name="autor" placeholder="Nombre del autor" required />
+          <input
+            type="text"
+            id="autor"
+            name="autor"
+            placeholder="Nombre del autor"
+            required
+          />
         </div>
-        <br><br>
-        
+        <span id="error-autor"></span>
+        <br /><br />
+
         <div>
           <label for="email">Email:</label>
-          <input type="email" id="email" name="email" placeholder="Email" required />
-          <small id="ayuda-email" style="display: block; min-height: 1.2rem; color: #666;"></small>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Email"
+            required
+          />
+          <small
+            id="ayuda-email"
+            style="display: block; min-height: 1.2rem; color: #666"
+          ></small>
         </div>
-        <br><br>
+        <br /><br />
         <div>
           <label for="tipo">Tipo de publicación:</label>
           <select id="tipo" name="tipo">
@@ -49,19 +73,26 @@
             <option value="servicio">Servicio</option>
           </select>
         </div>
-        <br><br>
-       
+        <br /><br />
+
         <div id="campos-especificos"></div>
 
         <button type="submit">Publicar</button>
       </form>
 
-      
       <h3>Vista previa</h3>
-      <output id="vista-previa" style="display: block; font-weight: bold; margin: 1rem 0;"></output>
+      <output
+        id="vista-previa"
+        style="display: block; font-weight: bold; margin: 1rem 0"
+      ></output>
 
       <section>
         <h2>Publicaciones cargadas</h2>
+        <button type="button" id="btn-actualizar">
+          Actualizar publicaciones
+        </button>
+        <button type="button" id="btn-error">Forzar error</button>
+        <p id="estado">Listo</p>
         <div id="lista-publicaciones"></div>
       </section>
     </main>
