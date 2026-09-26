@@ -1,7 +1,8 @@
 import Usuario from "./Usuario.js";
 import PublicacionVenta from "./PublicacionVenta.js";
 import PublicacionServicio from "./PublicacionServicio.js";
-import RepositorioPublicaciones from "./RepositorioPublicaciones.js";
+import RepositorioPublicaciones from "../../src/RepositorioPublicaciones.js";
+import Publicacion from "../../src/Publicacion.js";
 
 const titulo = document.querySelector("#titulo");
 const autor = document.querySelector("#autor");
