@@ -1,4 +1,4 @@
-import Usuario from "../public/js/Usuario.js";
+import Usuario from "./Usuario.js";
 import PublicacionVenta from "./PublicacionVenta.js";
 import { Publicacion } from "./Publicacion.js";
 
@@ -67,6 +67,11 @@ export class RepositorioPublicaciones {
     return this.publicaciones.filter(
       (publicacion) =>
         publicacion.activa && publicacion.tieneEtiqueta(etiqueta),
+    );
+  }
+  pendientesDeRevision() {
+    return this.publicaciones.filter(
+      (publicacion) => publicacion.activa && publicacion.requiereRevision(),
     );
   }
 }

@@ -2,6 +2,7 @@ import { Publicacion } from "../src/Publicacion.js";
 import { PublicacionVenta } from "../src/PublicacionVenta.js";
 import { PublicacionServicio } from "../src/PublicacionServicio.js";
 
+
 describe("Publicacion", () => {
   test("una publicación nueva comienza activa y sin etiquetas", () => {
     const publicacion = new Publicacion("Ana", "Apuntes de Redes", "...");
@@ -48,5 +49,28 @@ describe("Publicacion", () => {
     // Act + Assert
     expect(venta.mostrarResumen()).toContain("$5000");
     expect(servicio.mostrarResumen()).toContain("Clases de Álgebra");
+  });
+});
+
+describe("Parte 2 · Publicaciones reportables", () => {
+  test("requiereRevision pasa a true con 3 reportes de usuarios distintos", () => {
+    const publicacion = new Publicacion("Juan", "Título", "Contenido");
+
+    publicacion.reportar("user1", "Spam");
+    publicacion.reportar("user2", "Contenido inapropiado");
+    expect(publicacion.requiereRevision()).toBe(false);
+
+    publicacion.reportar("user3", "Lenguaje ofensivo");
+    expect(publicacion.requiereRevision()).toBe(true);
+  });
+
+  test("lanza un error si el mismo usuario intenta reportar dos veces", () => {
+    const publicacion = new Publicacion("Juan", "Título", "Contenido");
+
+    publicacion.reportar("user1", "Primer reporte");
+
+    expect(() => {
+      publicacion.reportar("user1", "Segundo reporte");
+    }).toThrow("El usuario ya reportó esta publicación");
   });
 });

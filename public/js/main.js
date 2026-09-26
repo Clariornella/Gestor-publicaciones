@@ -3,6 +3,7 @@ import PublicacionVenta from "./PublicacionVenta.js";
 import PublicacionServicio from "./PublicacionServicio.js";
 import RepositorioPublicaciones from "../../src/RepositorioPublicaciones.js";
 import Publicacion from "../../src/Publicacion.js";
+import { Reporte } from "../../src/Reporte.js";
 
 const titulo = document.querySelector("#titulo");
 const autor = document.querySelector("#autor");
@@ -325,3 +326,6 @@ function actualizarEstadoFormulario() {
 }
 
 formulario.addEventListener("input", actualizarEstadoFormulario);
+
+
+
