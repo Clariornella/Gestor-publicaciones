@@ -28,9 +28,11 @@ function actualizarVistaPrevia() {
   if (contador) {
     contador.textContent = descripcion.value.length;
   }
-  vistaPrevia.textContent =
-    `${titulo.value || "Sin título"} — ` +
-    `${autor.value || "..."} (${tipo.value})`;
+  if (vistaPrevia) {
+    vistaPrevia.textContent =
+      `${titulo.value || "Sin título"} — ` +
+      `${autor.value || "..."} (${tipo.value})`;
+  }
 }
 
 [titulo, autor, descripcion, tipo].forEach((control) => {
@@ -39,15 +41,15 @@ function actualizarVistaPrevia() {
   }
 });
 
-actualizarVistaPrevia();
-
-titulo.addEventListener("input", actualizarVistaPrevia);
-autor.addEventListener("input", actualizarVistaPrevia);
-tipo.addEventListener("change", actualizarVistaPrevia);
+if (tipo) {
+  tipo.addEventListener("change", actualizarVistaPrevia);
+}
 actualizarVistaPrevia();
 
 // Campos específicos según tipo
 function actualizarCamposEspecificos() {
+  if (!camposEspecificos || !tipo) return;
+
   if (tipo.value === "venta") {
     camposEspecificos.innerHTML = `
       <div>
@@ -57,8 +59,10 @@ function actualizarCamposEspecificos() {
       </div>
     `;
     const inputPrecio = document.querySelector("#precio");
-    inputPrecio.addEventListener("input", () => validarPrecio(false));
-    inputPrecio.addEventListener("blur", () => validarPrecio(true));
+    if (inputPrecio) {
+      inputPrecio.addEventListener("input", () => validarPrecio(false));
+      inputPrecio.addEventListener("blur", () => validarPrecio(true));
+    }
   } else {
     camposEspecificos.innerHTML = `
       <div>
@@ -76,75 +80,79 @@ function actualizarCamposEspecificos() {
     `;
   }
 
-  // Reevalúa si el formulario queda habilitado o deshabilitado al cambiar de tipo
   actualizarEstadoFormulario();
 }
 
-// Llamada inicial al arrancar el script para que el botón comience deshabilitado
 actualizarEstadoFormulario();
-tipo.addEventListener("change", actualizarCamposEspecificos);
-actualizarCamposEspecificos();
+if (tipo) {
+  tipo.addEventListener("change", actualizarCamposEspecificos);
+  actualizarCamposEspecificos();
+}
 
 // Ayuda email
-email.addEventListener("focus", () => {
-  ayudaEmail.textContent = "Usá un email válido del autor";
-});
-email.addEventListener("blur", () => {
-  ayudaEmail.textContent = "";
-});
+if (email && ayudaEmail) {
+  email.addEventListener("focus", () => {
+    ayudaEmail.textContent = "Usá un email válido del autor";
+  });
+  email.addEventListener("blur", () => {
+    ayudaEmail.textContent = "";
+  });
+}
 
-// Creación del objeto de dominio
+// Creación del objeto de dominio local (mantenido)
 function crearPublicacionDesdeFormulario() {
-  const usuario = new Usuario(autor.value, email.value);
+  const usuario = new Usuario(autor.value, email ? email.value : "");
   if (tipo.value === "venta") {
+    const inputPrecio = document.querySelector("#precio");
     return new PublicacionVenta(
       titulo.value,
       descripcion.value,
       usuario,
-      Number(document.querySelector("#precio").value),
+      inputPrecio ? Number(inputPrecio.value) : 0,
     );
   }
+  const modalidadInput = document.querySelector("#modalidad");
+  const duracionInput = document.querySelector("#duracion");
   return new PublicacionServicio(
     titulo.value,
     descripcion.value,
     usuario,
-    document.querySelector("#modalidad").value,
-    Number(document.querySelector("#duracion").value),
+    modalidadInput ? modalidadInput.value : "presencial",
+    duracionInput ? Number(duracionInput.value) : 0,
   );
 }
 
-// Parte 2: Renderizar publicaciones con data-id y data-accion
+// Renderizar publicaciones local (mantenido)
 function renderizarPublicaciones() {
+  if (!listaPublicaciones || typeof repositorio === "undefined") return;
   listaPublicaciones.innerHTML = "";
 
   repositorio.publicaciones.forEach((pub, index) => {
     const tarjeta = document.createElement("article");
     tarjeta.classList.add("tarjeta");
-    tarjeta.dataset.id = index; // data-id en la tarjeta
+    tarjeta.dataset.id = index;
 
     const parrafoResumen = document.createElement("p");
     parrafoResumen.textContent = pub.mostrarResumen();
 
-    const parrafoEstado = document.createElement("p");
-    parrafoEstado.innerHTML = `<strong>Estado:</strong> <span class="estado">${pub.estaActiva() ? "Activa" : "Inactiva"}</span>`;
+    const parrafoEst = document.createElement("p");
+    parrafoEst.innerHTML = `<strong>Estado:</strong> <span class="estado">${pub.estaActiva() ? "Activa" : "Inactiva"}</span>`;
 
     const parrafoDestacado = document.createElement("p");
     parrafoDestacado.innerHTML = `<strong>Destacado:</strong> <span class="destacado">${pub.destacado ? "Sí" : "No"}</span>`;
 
-    // Botón Destacar con data-accion="destacar"
     const botonDestacar = document.createElement("button");
     botonDestacar.type = "button";
     botonDestacar.textContent = "Destacar";
     botonDestacar.dataset.accion = "destacar";
 
-    // Botón Dar de baja con data-accion="baja"
     const botonBaja = document.createElement("button");
     botonBaja.type = "button";
     botonBaja.textContent = "Dar de baja";
     botonBaja.dataset.accion = "baja";
 
     tarjeta.appendChild(parrafoResumen);
-    tarjeta.appendChild(parrafoEstado);
+    tarjeta.appendChild(parrafoEst);
     tarjeta.appendChild(parrafoDestacado);
     tarjeta.appendChild(botonDestacar);
     tarjeta.appendChild(botonBaja);
@@ -153,43 +161,116 @@ function renderizarPublicaciones() {
   });
 }
 
-// Manejo del formulario
+function esperar(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// PASO 5D (Clase 17): Carga asíncrona desde GET /publicaciones
+async function cargarPublicaciones() {
+  try {
+    const respuesta = await fetch("/publicaciones");
+    if (!respuesta.ok) return;
+
+    const publicaciones = await respuesta.json();
+
+    if (listaPublicaciones) {
+      listaPublicaciones.innerHTML = publicaciones
+        .map(
+          (pub) => `
+            <li data-id="${pub.id}">
+              <strong>#${pub.id}: ${pub.titulo}</strong> (por ${pub.autor})
+              <p>${pub.descripcion}</p>
+              <small>Categoría: ${pub.categoria}</small>
+            </li>
+          `,
+        )
+        .join("");
+    }
+  } catch (error) {
+    console.error("Error al cargar publicaciones:", error);
+  }
+}
+
+// Carga inicial
+cargarPublicaciones();
+
+// PASO 5E (Clase 17): Manejo del formulario enviando al backend por fetch
 async function manejarEnvio(evento) {
+  // Evita la navegación/recarga del navegador
   evento.preventDefault();
 
-  // Validación final antes de procesar
-  if (!validarTitulo(true) || !validarAutor(true) || !validarPrecio(true)) {
+  if (!validarTitulo(true) || !validarAutor(true)) {
     return;
   }
 
-  // Estado: Cargando / Procesando
-  enviar.disabled = true;
-  estado.textContent = "Publicando...";
+  if (enviar) enviar.disabled = true;
+  if (estado) estado.textContent = "Publicando...";
+
+  const datos = {
+    autor: autor.value.trim(),
+    titulo: titulo.value.trim(),
+    descripcion: descripcion.value.trim(),
+    categoria: tipo ? tipo.value : "general",
+  };
 
   try {
-    // Simula la demora del servidor (800 ms)
-    await esperar(800);
+    const urlDestino = formulario.action || "/publicaciones";
+    const respuesta = await fetch(urlDestino, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(datos),
+    });
 
-    const publicacion = crearPublicacionDesdeFormulario();
-    repositorio.agregar(publicacion);
-    renderizarPublicaciones();
-
-    // Estado: Éxito
-    estado.textContent = "Publicación agregada";
-
-    formulario.reset();
-    actualizarCamposEspecificos();
-    actualizarVistaPrevia();
+    if (respuesta.ok) {
+      if (estado) estado.textContent = "Publicación agregada con éxito";
+      formulario.reset();
+      actualizarCamposEspecificos();
+      actualizarVistaPrevia();
+      await cargarPublicaciones(); // Refresca sin recargar la página
+    } else {
+      const errorData = await respuesta.json();
+      if (estado) estado.textContent = `Error: ${errorData.error}`;
+      alert(`Error al publicar: ${errorData.error}`);
+    }
   } catch (error) {
-    // Estado: Error
-    estado.textContent = `Error: ${error.message}`;
+    console.error("Error al enviar la publicación:", error);
+    if (estado) estado.textContent = `Error de red: ${error.message}`;
   } finally {
-    // Garantiza que el botón recupere el estado correcto según el formulario limpio o con datos
     actualizarEstadoFormulario();
   }
 }
 
-formulario.addEventListener("submit", manejarEnvio);
+if (formulario) {
+  formulario.addEventListener("submit", manejarEnvio);
+}
+
+if (formularioPedido) {
+  formularioPedido.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+
+    const datos = Object.fromEntries(new FormData(formularioPedido));
+
+    try {
+      const respuesta = await fetch(formularioPedido.action, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datos),
+      });
+
+      const resultado = await respuesta.json();
+      if (!respuesta.ok) {
+        throw new Error(resultado.error || "No se pudo publicar");
+      }
+
+      if (salida) salida.textContent = "Publicación agregada con éxito";
+      formularioPedido.reset();
+    } catch (error) {
+      if (salida) salida.textContent = `Error al publicar: ${error.message}`;
+    }
+  });
+}
 
 function manejarAccion(evento) {
   const boton = evento.target.closest("button[data-accion]");
@@ -197,65 +278,31 @@ function manejarAccion(evento) {
 
   const tarjeta = boton.closest("[data-id]");
   const id = Number(tarjeta.dataset.id);
-
   const accion = boton.dataset.accion;
 
-  const publicacion = repositorio.publicaciones[id];
-  if (!publicacion) return;
+  if (typeof repositorio !== "undefined") {
+    const publicacion = repositorio.publicaciones[id];
+    if (!publicacion) return;
 
-  if (accion === "baja") publicacion.darDeBaja();
-  if (accion === "destacar") publicacion.destacar();
+    if (accion === "baja") publicacion.darDeBaja();
+    if (accion === "destacar") publicacion.destacar();
 
-  renderizarPublicaciones();
-}
-listaPublicaciones.addEventListener("click", manejarAccion);
-
-function esperar(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-console.log("Esperando 2 segundos...");
-esperar(2000).then(() => {
-  console.log("2 segundos han pasado.");
-});
-
-// Carga asíncrona con manejo de estados y recuperación de errores
-async function cargarPublicaciones(forzarError = false) {
-  estado.textContent = "Cargando publicaciones...";
-  botonActualizar.disabled = true;
-
-  try {
-    const url = forzarError
-      ? "/api/publicaciones?error=1"
-      : "/api/publicaciones";
-    const respuesta = await fetch(url);
-
-    if (!respuesta.ok) {
-      throw new Error("La respuesta no fue exitosa");
-    }
-
-    const datos = await respuesta.json();
-    repositorio.cargarDesde(datos);
     renderizarPublicaciones();
-    estado.textContent = `${datos.length} publicaciones recibidas`;
-  } catch (error) {
-    estado.textContent = `Error: ${error.message}`;
-  } finally {
-    botonActualizar.disabled = false;
   }
 }
+if (listaPublicaciones) {
+  listaPublicaciones.addEventListener("click", manejarAccion);
+}
 
-// Listeners de actualización y prueba de error
-botonActualizar.addEventListener("click", () => cargarPublicaciones(false));
-if (botonError) {
-  botonError.addEventListener("click", () => cargarPublicaciones(true));
+// Botones auxiliares
+if (botonActualizar) {
+  botonActualizar.addEventListener("click", () => cargarPublicaciones());
 }
 
 // --- Validaciones con input y blur ---
 
 function validarTitulo(mostrarError = true) {
+  if (!titulo) return false;
   const valido = titulo.value.trim().length >= 5;
   titulo.classList.toggle("valido", valido);
   titulo.classList.toggle("invalido", !valido && mostrarError);
@@ -266,11 +313,14 @@ function validarTitulo(mostrarError = true) {
   return valido;
 }
 
-titulo.addEventListener("input", () => validarTitulo(false));
-titulo.addEventListener("blur", () => validarTitulo(true));
+if (titulo) {
+  titulo.addEventListener("input", () => validarTitulo(false));
+  titulo.addEventListener("blur", () => validarTitulo(true));
+}
 
 // Validación de Autor (mínimo 3 caracteres)
 function validarAutor(mostrarError = true) {
+  if (!autor) return false;
   const valido = autor.value.trim().length >= 3;
   autor.classList.toggle("valido", valido);
   autor.classList.toggle("invalido", !valido && mostrarError);
@@ -281,12 +331,14 @@ function validarAutor(mostrarError = true) {
   return valido;
 }
 
-autor.addEventListener("input", () => validarAutor(false));
-autor.addEventListener("blur", () => validarAutor(true));
+if (autor) {
+  autor.addEventListener("input", () => validarAutor(false));
+  autor.addEventListener("blur", () => validarAutor(true));
+}
 
 // Validación de Precio (mayor a 0 si es tipo 'venta')
 function validarPrecio(mostrarError = true) {
-  if (tipo.value !== "venta") return true;
+  if (!tipo || tipo.value !== "venta") return true;
 
   const inputPrecio = document.querySelector("#precio");
   const errorPrecio = document.querySelector("#error-precio");
@@ -303,9 +355,12 @@ function validarPrecio(mostrarError = true) {
 }
 
 function formularioValido() {
+  if (!titulo || !autor) return false;
   const precioInput = document.querySelector("#precio");
   const precioValido =
-    tipo.value !== "venta" || (precioInput && Number(precioInput.value) > 0);
+    !tipo ||
+    tipo.value !== "venta" ||
+    (precioInput && Number(precioInput.value) > 0);
 
   return (
     titulo.value.trim().length >= 5 &&
@@ -320,38 +375,26 @@ function actualizarEstadoFormulario() {
   }
 }
 
-formulario.addEventListener("input", actualizarEstadoFormulario);
+if (formulario) {
+  formulario.addEventListener("input", actualizarEstadoFormulario);
+}
 
-document.querySelector("#consultar").addEventListener("click", async () => {
-  parrafoEstado.textContent = "Consultando...";
+if (botonConsultar) {
+  botonConsultar.addEventListener("click", async () => {
+    if (parrafoEstado) parrafoEstado.textContent = "Consultando...";
 
-  // Pausa visual de 800 milisegundos para notar el cartel
-  await new Promise((resolve) => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
-  try {
-    const respuesta = await fetch("/estado-comunidad");
-    if (!respuesta.ok) {
-      throw new Error("La respuesta no fue exitosa");
+    try {
+      const respuesta = await fetch("/estado-comunidad");
+      if (!respuesta.ok) {
+        throw new Error("La respuesta no fue exitosa");
+      }
+      const texto = await respuesta.text();
+      if (parrafoEstado) parrafoEstado.textContent = texto;
+    } catch (error) {
+      if (parrafoEstado)
+        parrafoEstado.textContent = `No se pudo consultar el estado: ${error.message}`;
     }
-    const texto = await respuesta.text();
-    parrafoEstado.textContent = texto;
-  } catch (error) {
-    parrafoEstado.textContent = `No se pudo consultar el estado: ${error.message}`;
-  }
-});
-
-formularioPedido.addEventListener("submit", async (evento) => {
-  evento.preventDefault(); // Evita la recarga nativa de la página
-
-  const respuesta = await fetch(formulario.action, {
-    method: formulario.method,
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(new FormData(formulario)),
   });
-
-  salida.textContent = await respuesta.text();
-
-  salida.dataset.tipo = respuesta.ok ? "exito" : "error";
-
-  if (respuesta.ok) formulario.reset();
-});
+}

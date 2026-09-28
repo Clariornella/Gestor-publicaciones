@@ -1,7 +1,25 @@
-export const CATEGORIAS_PERMITIDAS = ["general", "aviso", "evento", "compraventa"];
+export const CATEGORIAS_PERMITIDAS = [
+  "general",
+  "aviso",
+  "evento",
+  "compraventa",
+];
 
 export class Publicacion {
-  constructor(autor, titulo, descripcion, categoria = "general") {
+  constructor(
+    idOAutor,
+    autorOTitulo,
+    tituloODescripcion,
+    descripcionOCategoria = "general",
+    categoriaConId = "general",
+  ) {
+    const usaId = arguments.length >= 5;
+    const id = usaId ? idOAutor : undefined;
+    const autor = usaId ? autorOTitulo : idOAutor;
+    const titulo = usaId ? tituloODescripcion : autorOTitulo;
+    const descripcion = usaId ? descripcionOCategoria : tituloODescripcion;
+    const categoria = usaId ? categoriaConId : descripcionOCategoria;
+
     // 1. Autor
     if (!autor?.trim()) {
       throw new Error("El autor es obligatorio");
@@ -15,16 +33,22 @@ export class Publicacion {
 
     // 3. Descripción (convertir -> validar)
     const descripcionNormalizado = descripcion?.trim() ?? "";
-    if (descripcionNormalizado.length < 20 || descripcionNormalizado.length > 500) {
+    if (
+      descripcionNormalizado.length < 20 ||
+      descripcionNormalizado.length > 500
+    ) {
       throw new Error("La descripcion debe tener entre 20 y 500 caracteres");
     }
 
     // 4. Categoría
     if (!CATEGORIAS_PERMITIDAS.includes(categoria)) {
-      throw new Error(`La categoría debe ser una de: ${CATEGORIAS_PERMITIDAS.join(", ")}`);
+      throw new Error(
+        `La categoría debe ser una de: ${CATEGORIAS_PERMITIDAS.join(", ")}`,
+      );
     }
 
     // Asignación de propiedades validadas
+    this.id = id;
     this.autor = autor.trim();
     this.titulo = tituloNormalizado;
     this.descripcion = descripcionNormalizado;

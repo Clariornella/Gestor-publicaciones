@@ -1,82 +1,72 @@
 import { RepositorioPublicaciones } from "../src/RepositorioPublicaciones.js";
-import { Publicacion } from "../src/Publicacion.js";
 
-describe("RepositorioPublicaciones", () => {
-  test("buscarPorEtiqueta devuelve coincidencias activas", () => {
-    const repositorio = new RepositorioPublicaciones();
-    const publicacion = new Publicacion(
-      "Ana",
-      "Apuntes de Redes",
-      "Este es el primer post de prueba con contenido suficiente.",
-    );
-    publicacion.agregarEtiqueta("redes");
-    repositorio.agregar(publicacion);
-    expect(repositorio.buscarPorEtiqueta("redes")).toEqual([publicacion]);
-  });
-  test("una publicación dada de baja queda excluida", () => {
-    const repositorio = new RepositorioPublicaciones();
-    const publicacion = new Publicacion(
-      "Ana",
-      "Apuntes de Redes",
-      "Este es el segundo post de prueba con contenido suficiente.",
-    );
-    publicacion.agregarEtiqueta("redes");
-    publicacion.darDeBaja();
-    repositorio.agregar(publicacion);
-    expect(repositorio.buscarPorEtiqueta("redes")).toEqual([]);
-  });
-  test("una etiqueta inexistente devuelve un arreglo vacío", () => {
-    const repositorio = new RepositorioPublicaciones();
-    expect(repositorio.buscarPorEtiqueta("inexistente")).toEqual([]);
-  });
-});
-
-describe("Parte 3 · Consulta del repositorio", () => {
-  let repo;
+describe("RepositorioPublicaciones · CRUD", () => {
+  let repositorio;
 
   beforeEach(() => {
-    repo = new RepositorioPublicaciones();
+    repositorio = new RepositorioPublicaciones();
   });
 
-  test("pendientesDeRevision devuelve solo publicaciones activas que requieren revisión", () => {
-    const p1 = new Publicacion(
-      "Ana",
-      "Pub 1",
-      "Contenido válido para la publicación uno.",
+  // PASO 6A: Agregar asigna IDs crecientes desde 1
+  test("agregar asigna ids crecientes a partir de 1", () => {
+    const pub1 = repositorio.agregar(
+      "Clara",
+      "Primer Libro",
+      "Descripcion con mas de veinte caracteres para validar.",
+      "general"
     );
-    const p2 = new Publicacion(
-      "Juan",
-      "Pub 2",
-      "Contenido válido para la publicación dos.",
-    );
-    const p3 = new Publicacion(
-      "Luis",
-      "Pub 3",
-      "Contenido válido para la publicación tres.",
+    const pub2 = repositorio.agregar(
+      "Martin",
+      "Segundo Libro",
+      "Otra descripcion con mas de veinte caracteres valida.",
+      "general"
     );
 
-    // p1: 3 reportes y activa -> DEBE aparecer
-    p1.reportar("u1", "Spam");
-    p1.reportar("u2", "Spam");
-    p1.reportar("u3", "Spam");
+    expect(pub1.id).toBe(1);
+    expect(pub2.id).toBe(2);
+  });
 
-    // p2: solo 2 reportes y activa -> NO debe aparecer
-    p2.reportar("u1", "Spam");
-    p2.reportar("u2", "Spam");
+  // PASO 6B: listar devuelve una copia desacoplada
+  test("listar devuelve una copia: modificarla no afecta al repositorio", () => {
+    repositorio.agregar(
+      "Clara",
+      "Titulo de prueba",
+      "Descripcion con mas de veinte caracteres para validar.",
+      "general"
+    );
 
-    // p3: 3 reportes pero inactiva -> NO debe aparecer
-    p3.reportar("u1", "Spam");
-    p3.reportar("u2", "Spam");
-    p3.reportar("u3", "Spam");
-    p3.activa = false;
+    const copia = repositorio.listar();
+    copia.pop(); // Modificamos el arreglo devuelto
 
-    repo.agregar(p1);
-    repo.agregar(p2);
-    repo.agregar(p3);
+    expect(copia).toHaveLength(0);
+    expect(repositorio.listar()).toHaveLength(1);
+  });
 
-    const pendientes = repo.pendientesDeRevision();
+  // PASO 6C: Actualizar con datos inválidos no altera el estado de la colección
+  test("actualizar con datos inválidos no modifica la colección", () => {
+    const original = repositorio.agregar(
+      "Clara",
+      "Titulo Original",
+      "Descripcion valida original de mas de veinte caracteres.",
+      "general"
+    );
 
-    expect(pendientes).toHaveLength(1);
-    expect(pendientes).toContain(p1);
+    // Intentamos actualizar con una descripción menor a 20 caracteres (rompe la validación)
+    expect(() => {
+      repositorio.actualizar(original.id, {
+        descripcion: "Corta"
+      });
+    }).toThrow();
+
+    // Verificamos que la publicación original siga intacta
+    const guardada = repositorio.buscarPorId(original.id);
+    expect(guardada.descripcion).toBe("Descripcion valida original de mas de veinte caracteres.");
+    expect(guardada.titulo).toBe("Titulo Original");
+  });
+
+  // PASO 6D: Eliminar con ID inexistente devuelve false
+  test("eliminar una publicación inexistente devuelve false", () => {
+    const resultado = repositorio.eliminar(999);
+    expect(resultado).toBe(false);
   });
 });

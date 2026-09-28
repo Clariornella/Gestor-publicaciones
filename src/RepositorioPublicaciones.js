@@ -5,10 +5,70 @@ import { Publicacion } from "./Publicacion.js";
 export class RepositorioPublicaciones {
   constructor() {
     this.publicaciones = [];
+    this.proximoId = 1;
   }
 
-  agregar(publicacion) {
+  agregar(autor, titulo, descripcion, categoria) {
+    if (arguments.length === 1 && typeof autor === "object") {
+      this.publicaciones.push(autor);
+      return autor;
+    }
+
+    const publicacion = new Publicacion(
+      this.proximoId++,
+      autor,
+      titulo,
+      descripcion,
+      categoria,
+    );
+
     this.publicaciones.push(publicacion);
+    return publicacion;
+  }
+
+  listar() {
+    return [...this.publicaciones];
+  }
+
+  buscarPorId(id) {
+    return this.publicaciones.find((pub) => pub.id === id);
+  }
+
+  actualizar(id, cambios) {
+    const anterior = this.buscarPorId(id);
+    if (!anterior) throw new Error("Publicación inexistente");
+
+    // Reconstruimos a través del constructor para revalidar reglas de negocio
+    const actualizada = new Publicacion(
+      anterior.id,
+      cambios.autor ?? anterior.autor,
+      cambios.titulo ?? anterior.titulo,
+      cambios.descripcion ?? anterior.descripcion,
+      cambios.categoria ?? anterior.categoria,
+    );
+
+    // PASO 3: Decisión de diseño sobre estado, reportes, etiquetas y activa:
+    // Se conservan para no perder el historial de moderación ni alterar
+    // el ciclo de vida del recurso ante una simple edición de contenido.
+    if (anterior.reportes !== undefined)
+      actualizada.reportes = anterior.reportes;
+    if (anterior.activa !== undefined) actualizada.activa = anterior.activa;
+    if (anterior.estado !== undefined) actualizada.estado = anterior.estado;
+    if (anterior.etiquetas !== undefined)
+      actualizada.etiquetas = [...anterior.etiquetas];
+
+    // Reemplazamos la instancia en la misma posición de la colección
+    this.publicaciones[this.publicaciones.indexOf(anterior)] = actualizada;
+
+    return actualizada;
+  }
+
+  eliminar(id) {
+    const publicacion = this.buscarPorId(id);
+    if (!publicacion) return false;
+
+    this.publicaciones.splice(this.publicaciones.indexOf(publicacion), 1);
+    return true;
   }
 
   buscarPorUsuario(nombre) {
