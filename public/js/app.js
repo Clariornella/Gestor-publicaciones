@@ -1,10 +1,3 @@
-import Usuario from "./Usuario.js";
-import PublicacionVenta from "./PublicacionVenta.js";
-import PublicacionServicio from "./PublicacionServicio.js";
-import RepositorioPublicaciones from "../../src/RepositorioPublicaciones.js";
-import Publicacion from "../../src/Publicacion.js";
-import { Reporte } from "../../src/Reporte.js";
-
 const titulo = document.querySelector("#titulo");
 const autor = document.querySelector("#autor");
 const tipo = document.querySelector("#tipo");
@@ -25,8 +18,8 @@ const enviar =
   document.querySelector("#form-publicacion button[type='submit']") ||
   document.querySelector("#btn-publicar");
 
-// Instancia del repositorio
-const repositorio = new RepositorioPublicaciones();
+const botonConsultar = document.querySelector("#consultar");
+const parrafoEstado = document.querySelector("#estado");
 
 // Vista previa
 function actualizarVistaPrevia() {
@@ -327,5 +320,20 @@ function actualizarEstadoFormulario() {
 
 formulario.addEventListener("input", actualizarEstadoFormulario);
 
+document.querySelector("#consultar").addEventListener("click", async () => {
+  parrafoEstado.textContent = "Consultando...";
 
+  // Pausa visual de 800 milisegundos para notar el cartel
+  await new Promise((resolve) => setTimeout(resolve, 800));
 
+  try {
+    const respuesta = await fetch("/estado-comunidad");
+    if (!respuesta.ok) {
+      throw new Error("La respuesta no fue exitosa");
+    }
+    const texto = await respuesta.text();
+    parrafoEstado.textContent = texto;
+  } catch (error) {
+    parrafoEstado.textContent = `No se pudo consultar el estado: ${error.message}`;
+  }
+});

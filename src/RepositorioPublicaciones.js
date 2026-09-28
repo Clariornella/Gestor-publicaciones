@@ -74,4 +74,9 @@ export class RepositorioPublicaciones {
       (publicacion) => publicacion.activa && publicacion.requiereRevision(),
     );
   }
+
+  obtenerEstado() {
+    const activas = this.publicaciones.filter((p) => p.activa).length;
+    return `Publicaciones activas: ${activas}`;
+  }
 }

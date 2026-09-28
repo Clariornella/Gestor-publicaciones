@@ -1,0 +1,30 @@
+===================================================================================================
+ACTIVIDAD INICIAL: MAPA DE RESPONSABILIDADES
+===================================================================================================
+
+Pregunta guía: Si borraran ese archivo, ¿qué entorno deja de funcionar?
+
+ARCHIVO: public/index.html, public/css/styles.css
+CAPA:    Cliente
+¿DÓNDE SE EJECUTA Y POR QUÉ?
+Se interpretan y renderizan en el navegador del usuario; si se borran, el cliente pierde la
+estructura base de la interfaz y su presentación visual.
+
+ARCHIVO: public/js/app.js
+CAPA:    Cliente
+¿DÓNDE SE EJECUTA Y POR QUÉ?
+Se ejecuta en el motor de JavaScript del navegador; si se borra, deja de funcionar la
+interactividad del lado cliente (escucha de eventos de usuario, llamadas con fetch y
+
+ARCHIVO: server.js
+CAPA:    Servidor
+¿DÓNDE SE EJECUTA Y POR QUÉ?
+Se ejecuta en Node.js; si se borra, deja de funcionar el backend completo: no hay proceso
+escuchando en el puerto, no se puede servir contenido estático ni responder a las rutas HTTP.
+
+ARCHIVO: src/Publicacion.js, src/RepositorioPublicaciones.js
+CAPA:    Dominio
+¿DÓNDE SE EJECUTA Y POR QUÉ?
+Se ejecutan en Node.js del lado del servidor (importados por server.js); si se borran, el
+servidor se queda sin las reglas de negocio, entidades y métodos para gestionar y resumir
+el estado de los datos.ción del DOM).
