@@ -1,91 +1,96 @@
-import { Reporte } from "./Reporte.js";
+export const CATEGORIAS_PERMITIDAS = ["general", "aviso", "evento", "compraventa"];
 
 export class Publicacion {
-  constructor(titulo, descripcion, autor) {
-    this.titulo = titulo;
-    this.descripcion = descripcion;
-    this.autor = autor;
-    this.fechaPublicacion = new Date();
+  constructor(autor, titulo, descripcion, categoria = "general") {
+    // 1. Autor
+    if (!autor?.trim()) {
+      throw new Error("El autor es obligatorio");
+    }
+
+    // 2. Título (convertir -> validar)
+    const tituloNormalizado = titulo?.trim() ?? "";
+    if (tituloNormalizado.length < 5 || tituloNormalizado.length > 80) {
+      throw new Error("El título debe tener entre 5 y 80 caracteres");
+    }
+
+    // 3. Descripción (convertir -> validar)
+    const descripcionNormalizado = descripcion?.trim() ?? "";
+    if (descripcionNormalizado.length < 20 || descripcionNormalizado.length > 500) {
+      throw new Error("La descripcion debe tener entre 20 y 500 caracteres");
+    }
+
+    // 4. Categoría
+    if (!CATEGORIAS_PERMITIDAS.includes(categoria)) {
+      throw new Error(`La categoría debe ser una de: ${CATEGORIAS_PERMITIDAS.join(", ")}`);
+    }
+
+    // Asignación de propiedades validadas
+    this.autor = autor.trim();
+    this.titulo = tituloNormalizado;
+    this.descripcion = descripcionNormalizado;
+    this.categoria = categoria;
     this.activa = true;
-    this.destacado = false;
+
+    // Propiedades acumuladas de clases anteriores (etiquetas, reportes, asincronía)
     this.etiquetas = [];
     this.reportes = [];
+    this.usuariosReportaron = new Set();
     this.estado = "pendiente";
   }
 
-  get resumen() {
-    const estadoTexto = this.activa ? "Activa" : "Inactiva";
-    return `${this.autor.nombre} — ${this.titulo} (${estadoTexto})`;
+  // --- MÉTODOS DE ETIQUETAS Y ESTADO ---
+  agregarEtiqueta(etiqueta) {
+    const normalizada = etiqueta?.trim().toLowerCase();
+    if (!normalizada) {
+      throw new Error("Etiqueta inválida");
+    }
+    if (!this.etiquetas.includes(normalizada)) {
+      this.etiquetas.push(normalizada);
+    }
   }
 
-  destacar() {
-    this.destacado = true;
-  }
-
-  opacar() {
-    this.destacado = false;
-  }
-
-  mostrarResumen() {
-    return `${this.titulo} - ${this.autor.nombre} - (${this.autor.email})`;
-  }
-
-  estaActiva() {
-    return this.activa;
+  tieneEtiqueta(etiqueta) {
+    const normalizada = etiqueta?.trim().toLowerCase();
+    return this.etiquetas.includes(normalizada);
   }
 
   darDeBaja() {
     this.activa = false;
   }
 
-  agregarEtiqueta(etiqueta) {
-    const normalizada = etiqueta.trim();
-    if (!normalizada) {
-      throw new Error("Etiqueta inválida");
-    }
-    const yaExiste = this.tieneEtiqueta(normalizada);
-    if (!yaExiste) {
-      this.etiquetas.push(normalizada);
-    }
+  mostrarResumen() {
+    return `${this.titulo} - ${this.descripcion} (por ${this.autor})`;
   }
 
-  tieneEtiqueta(etiqueta) {
-    const buscada = etiqueta.trim().toLowerCase();
-    return this.etiquetas.some((e) => e.toLowerCase() === buscada);
-  }
-
+  // --- MÉTODOS DE REPORTES (PARTE 2) ---
   reportar(usuario, motivo) {
-    const yaReporto = this.reportes.some((r) => r.usuario === usuario);
-    if (yaReporto) {
+    if (this.usuariosReportaron.has(usuario)) {
       throw new Error("El usuario ya reportó esta publicación");
     }
-    this.reportes.push(new Reporte(usuario, motivo));
+    this.usuariosReportaron.add(usuario);
+    this.reportes.push({ usuario, motivo });
   }
 
   requiereRevision() {
     return this.reportes.length >= 3;
   }
-  eportar(usuario, motivo) {
-    const yaReporto = this.reportes.some((r) => r.usuario === usuario);
-    if (yaReporto) {
-      throw new Error("El usuario ya reportó esta publicación");
+
+  // --- MÉTODO ASINCRÓNICO DE REVISIÓN ---
+  async revisar(servicio) {
+    try {
+      const resultado = await servicio.evaluar(this);
+      if (resultado === "aprobado") {
+        this.estado = "aprobada";
+      } else if (resultado === "rechazado") {
+        this.estado = "rechazada";
+      }
+      return this.estado;
+    } catch (error) {
+      // Conserva el estado original "pendiente" y propaga el error
+      throw error;
     }
-    this.reportes.push(new Reporte(usuario, motivo));
-  }
-  requiereRevision() {
-    return this.reportes.length >= 3;
-  }
-  async revisar(servicioModeracion) {
-    const decision = await servicioModeracion.evaluar(this);
-    if (decision === "aprobado") {
-      this.estado = "aprobada";
-    } else if (decision === "rechazado") {
-      this.estado = "rechazada";
-    } else {
-      throw new Error("Decisión de moderación inválida");
-    }
-    return this.estado;
   }
 }
 
+// Export default para compatibilidad con suites que usan import Publicacion from ...
 export default Publicacion;

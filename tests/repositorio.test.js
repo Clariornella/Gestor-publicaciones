@@ -4,14 +4,22 @@ import { Publicacion } from "../src/Publicacion.js";
 describe("RepositorioPublicaciones", () => {
   test("buscarPorEtiqueta devuelve coincidencias activas", () => {
     const repositorio = new RepositorioPublicaciones();
-    const publicacion = new Publicacion("Ana", "Apuntes de Redes", "...");
+    const publicacion = new Publicacion(
+      "Ana",
+      "Apuntes de Redes",
+      "Este es el primer post de prueba con contenido suficiente.",
+    );
     publicacion.agregarEtiqueta("redes");
     repositorio.agregar(publicacion);
     expect(repositorio.buscarPorEtiqueta("redes")).toEqual([publicacion]);
   });
   test("una publicación dada de baja queda excluida", () => {
     const repositorio = new RepositorioPublicaciones();
-    const publicacion = new Publicacion("Ana", "Apuntes de Redes", "...");
+    const publicacion = new Publicacion(
+      "Ana",
+      "Apuntes de Redes",
+      "Este es el segundo post de prueba con contenido suficiente.",
+    );
     publicacion.agregarEtiqueta("redes");
     publicacion.darDeBaja();
     repositorio.agregar(publicacion);
@@ -31,9 +39,21 @@ describe("Parte 3 · Consulta del repositorio", () => {
   });
 
   test("pendientesDeRevision devuelve solo publicaciones activas que requieren revisión", () => {
-    const p1 = new Publicacion("Ana", "Pub 1", "Contenido");
-    const p2 = new Publicacion("Juan", "Pub 2", "Contenido");
-    const p3 = new Publicacion("Luis", "Pub 3", "Contenido");
+    const p1 = new Publicacion(
+      "Ana",
+      "Pub 1",
+      "Contenido válido para la publicación uno.",
+    );
+    const p2 = new Publicacion(
+      "Juan",
+      "Pub 2",
+      "Contenido válido para la publicación dos.",
+    );
+    const p3 = new Publicacion(
+      "Luis",
+      "Pub 3",
+      "Contenido válido para la publicación tres.",
+    );
 
     // p1: 3 reportes y activa -> DEBE aparecer
     p1.reportar("u1", "Spam");

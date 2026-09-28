@@ -2,7 +2,7 @@ import Publicacion from "./Publicacion.js";
 
 export class PublicacionVenta extends Publicacion {
   constructor(titulo, descripcion, autor, precio) {
-    super(titulo, descripcion, autor); //Super antes del This SIEMPRE
+    super(autor, titulo, descripcion);
     this.precio = precio;
     this.stock = 1;
   }
@@ -13,4 +13,4 @@ export class PublicacionVenta extends Publicacion {
   }
 }
 
-export default PublicacionVenta;  
+export default PublicacionVenta;

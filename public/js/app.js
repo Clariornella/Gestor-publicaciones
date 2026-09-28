@@ -20,6 +20,8 @@ const enviar =
 
 const botonConsultar = document.querySelector("#consultar");
 const parrafoEstado = document.querySelector("#estado");
+const formularioPedido = document.querySelector("#pedido");
+const salida = document.querySelector("#salida");
 
 // Vista previa
 function actualizarVistaPrevia() {
@@ -336,4 +338,20 @@ document.querySelector("#consultar").addEventListener("click", async () => {
   } catch (error) {
     parrafoEstado.textContent = `No se pudo consultar el estado: ${error.message}`;
   }
+});
+
+formularioPedido.addEventListener("submit", async (evento) => {
+  evento.preventDefault(); // Evita la recarga nativa de la página
+
+  const respuesta = await fetch(formulario.action, {
+    method: formulario.method,
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(new FormData(formulario)),
+  });
+
+  salida.textContent = await respuesta.text();
+
+  salida.dataset.tipo = respuesta.ok ? "exito" : "error";
+
+  if (respuesta.ok) formulario.reset();
 });

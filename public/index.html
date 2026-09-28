@@ -96,6 +96,34 @@
         <p id="estado">Listo</p>
         <div id="lista-publicaciones"></div>
       </section>
+
+      <form id="pedido" action="/publicaciones" method="post">
+        <label>Autor <input name="autor" required /></label>
+        <label
+          >Título <input name="titulo" minlength="5" maxlength="80" required
+        /></label>
+        <label
+          >Descripcion
+          <textarea
+            name="descripcion"
+            minlength="20"
+            maxlength="500"
+            required
+          ></textarea>
+        </label>
+        <label
+          >Categoría
+          <select name="categoria" required>
+            <option value="general">General</option>
+            <option value="aviso">Aviso</option>
+            <option value="evento">Evento</option>
+            <option value="compraventa">Compra-venta</option>
+          </select>
+        </label>
+        <button>Publicar</button>
+      </form>
+
+      <p id="salida"></p>
     </main>
 
     <script type="module" src="js/app.js"></script>

@@ -1,8 +1,8 @@
 import Publicacion from "./Publicacion.js";
 
-export  class PublicacionServicio extends Publicacion {
+export class PublicacionServicio extends Publicacion {
   constructor(titulo, descripcion, autor, modalidad, duracionMinutos, cliente) {
-    super(titulo, descripcion, autor); //Super antes del This SIEMPRE
+    super(autor, titulo, descripcion);
     this.modalidad = modalidad;
     this.duracionMinutos = duracionMinutos;
     this.cliente = cliente;
