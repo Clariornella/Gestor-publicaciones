@@ -1,11 +1,12 @@
 import { Router } from "express";
+import { paraExponer } from "../src/formatos.js";
 
 export default function crearRouterPublicaciones(repositorio) {
   const router = Router();
 
   // PASO 5A: devolver repositorio.listar() como JSON
   router.get("/", (req, res) => {
-    res.json(repositorio.listar());
+    res.json(repositorio.listar().map(paraExponer));
   });
 
   // Ya existente de la clase 16 (si lo tenías acá o en tus rutas anteriores):
@@ -15,12 +16,17 @@ export default function crearRouterPublicaciones(repositorio) {
   });
 
   // PASO 5B: crear con repositorio.agregar(...) y responder 201/400
-  router.post("/", (req, res) => {
+  router.post("/", async (req, res) => {
     const { autor, titulo, descripcion, categoria } = req.body;
 
     try {
-      const nueva = repositorio.agregar(autor, titulo, descripcion, categoria);
-      res.status(201).json(nueva);
+      const nueva = await repositorio.agregar(
+        autor,
+        titulo,
+        descripcion,
+        categoria,
+      );
+      res.status(201).json(paraExponer(nueva));
     } catch (error) {
       res.status(400).json({ error: error.message });
     }

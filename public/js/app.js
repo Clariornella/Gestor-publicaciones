@@ -22,6 +22,10 @@ const botonConsultar = document.querySelector("#consultar");
 const parrafoEstado = document.querySelector("#estado");
 const formularioPedido = document.querySelector("#pedido");
 const salida = document.querySelector("#salida");
+const botonVerJSON = document.querySelector("#ver-json");
+const botonVerXML = document.querySelector("#ver-xml");
+const diagnosticoCrudo = document.querySelector("#diagnostico-crudo");
+const diagnosticoLista = document.querySelector("#diagnostico-lista");
 
 // Vista previa
 function actualizarVistaPrevia() {
@@ -396,5 +400,59 @@ if (botonConsultar) {
       if (parrafoEstado)
         parrafoEstado.textContent = `No se pudo consultar el estado: ${error.message}`;
     }
+  });
+}
+
+function mostrarDiagnostico(publicaciones) {
+  if (!diagnosticoLista) return;
+
+  diagnosticoLista.innerHTML = publicaciones
+    .map(
+      (publicacion) => `
+        <li>
+          <strong>#${publicacion.id}: ${publicacion.titulo}</strong>
+          (por ${publicacion.autor})
+          <p>${publicacion.descripcion}</p>
+          <small>Categoría: ${publicacion.categoria}</small>
+        </li>
+      `,
+    )
+    .join("");
+}
+
+if (botonVerJSON) {
+  botonVerJSON.addEventListener("click", async () => {
+    const texto = await fetch("/datos/publicaciones.json").then((respuesta) =>
+      respuesta.text(),
+    );
+    if (diagnosticoCrudo) diagnosticoCrudo.textContent = texto;
+    mostrarDiagnostico(JSON.parse(texto));
+  });
+}
+
+if (botonVerXML) {
+  botonVerXML.addEventListener("click", async () => {
+    const texto = await fetch("/datos/publicaciones.xml").then((respuesta) =>
+      respuesta.text(),
+    );
+    if (diagnosticoCrudo) diagnosticoCrudo.textContent = texto;
+
+    const xml = new DOMParser().parseFromString(texto, "application/xml");
+    const publicaciones = [...xml.querySelectorAll("publicacion")].map(
+      (nodo) => ({
+        id: Number(nodo.getAttribute("id")),
+        autor: nodo.querySelector("autor")?.textContent || "",
+        titulo: nodo.querySelector("titulo")?.textContent || "",
+        descripcion: nodo.querySelector("descripcion")?.textContent || "",
+        categoria: nodo.querySelector("categoria")?.textContent || "",
+        activa: nodo.querySelector("activa")?.textContent === "true",
+        etiquetas: (nodo.querySelector("etiquetas")?.textContent || "")
+          .split(", ")
+          .filter(Boolean),
+        estado: nodo.querySelector("estado")?.textContent || "",
+      }),
+    );
+
+    mostrarDiagnostico(publicaciones);
   });
 }

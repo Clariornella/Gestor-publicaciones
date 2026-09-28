@@ -8,18 +8,18 @@ describe("RepositorioPublicaciones · CRUD", () => {
   });
 
   // PASO 6A: Agregar asigna IDs crecientes desde 1
-  test("agregar asigna ids crecientes a partir de 1", () => {
-    const pub1 = repositorio.agregar(
+  test("agregar asigna ids crecientes a partir de 1", async () => {
+    const pub1 = await repositorio.agregar(
       "Clara",
       "Primer Libro",
       "Descripcion con mas de veinte caracteres para validar.",
-      "general"
+      "general",
     );
-    const pub2 = repositorio.agregar(
+    const pub2 = await repositorio.agregar(
       "Martin",
       "Segundo Libro",
       "Otra descripcion con mas de veinte caracteres valida.",
-      "general"
+      "general",
     );
 
     expect(pub1.id).toBe(1);
@@ -27,12 +27,12 @@ describe("RepositorioPublicaciones · CRUD", () => {
   });
 
   // PASO 6B: listar devuelve una copia desacoplada
-  test("listar devuelve una copia: modificarla no afecta al repositorio", () => {
-    repositorio.agregar(
+  test("listar devuelve una copia: modificarla no afecta al repositorio", async () => {
+    await repositorio.agregar(
       "Clara",
       "Titulo de prueba",
       "Descripcion con mas de veinte caracteres para validar.",
-      "general"
+      "general",
     );
 
     const copia = repositorio.listar();
@@ -43,30 +43,32 @@ describe("RepositorioPublicaciones · CRUD", () => {
   });
 
   // PASO 6C: Actualizar con datos inválidos no altera el estado de la colección
-  test("actualizar con datos inválidos no modifica la colección", () => {
-    const original = repositorio.agregar(
+  test("actualizar con datos inválidos no modifica la colección", async () => {
+    const original = await repositorio.agregar(
       "Clara",
       "Titulo Original",
       "Descripcion valida original de mas de veinte caracteres.",
-      "general"
+      "general",
     );
 
     // Intentamos actualizar con una descripción menor a 20 caracteres (rompe la validación)
-    expect(() => {
+    await expect(
       repositorio.actualizar(original.id, {
-        descripcion: "Corta"
-      });
-    }).toThrow();
+        descripcion: "Corta",
+      }),
+    ).rejects.toThrow();
 
     // Verificamos que la publicación original siga intacta
     const guardada = repositorio.buscarPorId(original.id);
-    expect(guardada.descripcion).toBe("Descripcion valida original de mas de veinte caracteres.");
+    expect(guardada.descripcion).toBe(
+      "Descripcion valida original de mas de veinte caracteres.",
+    );
     expect(guardada.titulo).toBe("Titulo Original");
   });
 
   // PASO 6D: Eliminar con ID inexistente devuelve false
-  test("eliminar una publicación inexistente devuelve false", () => {
-    const resultado = repositorio.eliminar(999);
+  test("eliminar una publicación inexistente devuelve false", async () => {
+    const resultado = await repositorio.eliminar(999);
     expect(resultado).toBe(false);
   });
 });

@@ -1,16 +1,62 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 import Usuario from "./Usuario.js";
 import PublicacionVenta from "./PublicacionVenta.js";
 import { Publicacion } from "./Publicacion.js";
 
 export class RepositorioPublicaciones {
-  constructor() {
+  constructor(ruta) {
+    this.ruta = ruta;
     this.publicaciones = [];
     this.proximoId = 1;
   }
 
-  agregar(autor, titulo, descripcion, categoria) {
+  async cargar() {
+    try {
+      const texto = await readFile(this.ruta, "utf8");
+      const datos = JSON.parse(texto);
+
+      this.publicaciones = datos.map((item) => {
+        const publicacion = new Publicacion(
+          item.id,
+          item.autor,
+          item.titulo,
+          item.descripcion,
+          item.categoria,
+        );
+
+        if (item.activa === false) publicacion.darDeBaja();
+        publicacion.etiquetas = [...(item.etiquetas || [])];
+        publicacion.estado = item.estado || publicacion.estado;
+        return publicacion;
+      });
+
+      const ids = this.publicaciones.map((publicacion) => publicacion.id);
+      this.proximoId = ids.length > 0 ? Math.max(...ids) + 1 : 1;
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+
+      this.publicaciones = [];
+      this.proximoId = 1;
+      await this.guardar();
+    }
+  }
+
+  async guardar() {
+    if (!this.ruta) return;
+
+    await mkdir(dirname(this.ruta), { recursive: true });
+    await writeFile(
+      this.ruta,
+      JSON.stringify(this.publicaciones, null, 2),
+      "utf8",
+    );
+  }
+
+  async agregar(autor, titulo, descripcion, categoria) {
     if (arguments.length === 1 && typeof autor === "object") {
       this.publicaciones.push(autor);
+      await this.guardar();
       return autor;
     }
 
@@ -23,6 +69,7 @@ export class RepositorioPublicaciones {
     );
 
     this.publicaciones.push(publicacion);
+    await this.guardar();
     return publicacion;
   }
 
@@ -34,7 +81,7 @@ export class RepositorioPublicaciones {
     return this.publicaciones.find((pub) => pub.id === id);
   }
 
-  actualizar(id, cambios) {
+  async actualizar(id, cambios) {
     const anterior = this.buscarPorId(id);
     if (!anterior) throw new Error("Publicación inexistente");
 
@@ -60,14 +107,16 @@ export class RepositorioPublicaciones {
     // Reemplazamos la instancia en la misma posición de la colección
     this.publicaciones[this.publicaciones.indexOf(anterior)] = actualizada;
 
+    await this.guardar();
     return actualizada;
   }
 
-  eliminar(id) {
+  async eliminar(id) {
     const publicacion = this.buscarPorId(id);
     if (!publicacion) return false;
 
     this.publicaciones.splice(this.publicaciones.indexOf(publicacion), 1);
+    await this.guardar();
     return true;
   }
 

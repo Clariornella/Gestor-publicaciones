@@ -97,6 +97,14 @@
         <div id="lista-publicaciones"></div>
       </section>
 
+      <section>
+        <h2>Diagnóstico de formatos</h2>
+        <button type="button" id="ver-json">Ver JSON</button>
+        <button type="button" id="ver-xml">Ver XML</button>
+        <pre id="diagnostico-crudo"></pre>
+        <ul id="diagnostico-lista"></ul>
+      </section>
+
       <form id="pedido" action="/publicaciones" method="post">
         <label>Autor <input name="autor" required /></label>
         <label
