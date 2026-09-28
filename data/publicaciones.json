@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "autor": "Ana",
+    "titulo": "Apuntes de Redes",
+    "descripcion": "Material de estudio sobre redes y desarrollo web.",
+    "categoria": "general",
+    "activa": true,
+    "etiquetas": [],
+    "reportes": [],
+    "usuariosReportaron": {},
+    "estado": "pendiente"
+  },
+  {
+    "id": 2,
+    "autor": "Luis",
+    "titulo": "Clases de JavaScript",
+    "descripcion": "Servicio de apoyo para aprender JavaScript desde cero.",
+    "categoria": "evento",
+    "activa": true,
+    "etiquetas": [],
+    "reportes": [],
+    "usuariosReportaron": {},
+    "estado": "pendiente"
+  }
+]

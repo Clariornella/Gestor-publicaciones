@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gestor de Publicaciones</title>
+    <!-- [TP: Día 12 · Clase 15: Cliente, servidor y dominio - Parte 2] 
+         Carga de la hoja de estilos estática servida desde public/css por Express -->
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
@@ -12,9 +14,18 @@
     </header>
 
     <main>
+      <!-- =======================================================================
+           FORMULARIO PRINCIPAL: REACTIVO Y LOCAL
+           ---------------------------------------------------------------------
+           [TP: Día 8 · Práctica: El gestor llega al navegador - Partes 1, 3, 4 y 5]
+           Estructura inicial del formulario para interactuar con eventos del DOM.
+           [TP: Días 10-11 · Práctica: Asincronía y formularios reactivos - Partes 4 a 7]
+           Suma los spans de error, contador y validación en tiempo real (input/blur).
+           ======================================================================= -->
       <form id="form-publicacion">
         <h2>Nueva publicación</h2>
 
+        <!-- Validación reactiva de Título: mín. 5 caracteres -->
         <div>
           <label for="titulo">Título:</label>
           <input
@@ -25,8 +36,11 @@
             required
           />
         </div>
+        <!-- Contenedor del mensaje de error reactivo al perder foco (blur) -->
         <span id="error-titulo"></span>
         <br /><br />
+
+        <!-- Contador incremental de caracteres sobre la descripción -->
         <div>
           <label for="descripcion">Descripción:</label>
           <textarea
@@ -35,9 +49,12 @@
             rows="3"
             placeholder="Descripción"
           ></textarea>
+          <!-- [Días 10-11 - Parte 5] Contador en tiempo real disparado por evento input -->
           <p>Caracteres: <span id="contador">0</span></p>
         </div>
         <br /><br />
+
+        <!-- Validación reactiva de Autor: mín. 3 caracteres -->
         <div>
           <label for="autor">Autor:</label>
           <input
@@ -48,9 +65,11 @@
             required
           />
         </div>
+        <!-- Contenedor del mensaje de error reactivo al perder foco (blur) -->
         <span id="error-autor"></span>
         <br /><br />
 
+        <!-- Ayuda contextual en tiempo real mediante focus y blur -->
         <div>
           <label for="email">Email:</label>
           <input
@@ -60,12 +79,15 @@
             placeholder="Email"
             required
           />
+          <!-- [Día 8 - Parte 5] Texto de orientación que aparece en focus y desaparece en blur -->
           <small
             id="ayuda-email"
             style="display: block; min-height: 1.2rem; color: #666"
           ></small>
         </div>
         <br /><br />
+
+        <!-- Selector que dispara el evento 'change' para modificar la interfaz -->
         <div>
           <label for="tipo">Tipo de publicación:</label>
           <select id="tipo" name="tipo">
@@ -75,41 +97,85 @@
         </div>
         <br /><br />
 
+        <!-- [Día 8 - Parte 4] Contenedor dinámico inyectado por JS (precio o modalidad/duración) -->
         <div id="campos-especificos"></div>
 
+        <!-- Botón de envío que se habilita/deshabilita según validaciones reactivas -->
         <button type="submit">Publicar</button>
       </form>
 
+      <!-- =======================================================================
+           VISTA PREVIA REACTIVA
+           ---------------------------------------------------------------------
+           [TP: Día 8 · Práctica - Parte 3] y [TP: Días 10-11 · Práctica - Parte 5]
+           Muestra en tiempo real la síntesis del aviso antes de persistirlo o enviarlo.
+           ======================================================================= -->
       <h3>Vista previa</h3>
       <output
         id="vista-previa"
         style="display: block; font-weight: bold; margin: 1rem 0"
       ></output>
 
+      <!-- =======================================================================
+           SECCIÓN DE PUBLICACIONES, ESTADOS Y ACCIONES ASÍNCRONAS
+           ---------------------------------------------------------------------
+           [TP: Día 9 · Práctica - Partes 2 a 4]
+           Lista para delegación de eventos con botones "Destacar" y "Dar de baja".
+           [TP: Días 10-11 - Partes 2 y 3]
+           Botones para forzar recarga, simular errores y comunicar estados visuales.
+           [TP: Día 12 · Clase 15: Cliente, servidor y dominio - Parte 3]
+           Botón para consultar el estado del servidor Express con GET /estado-comunidad.
+           ======================================================================= -->
       <section>
         <h2>Publicaciones cargadas</h2>
+        <!-- Dispara la recarga manual de publicaciones vía GET -->
         <button type="button" id="btn-actualizar">
           Actualizar publicaciones
         </button>
+        <!-- Permite verificar el manejo de excepciones de red con try/catch/finally -->
         <button type="button" id="btn-error">Forzar error</button>
+        <!-- Consulta GET /estado-comunidad al backend -->
         <button type="button" id="consultar">Consultar estado</button>
+        <!-- Párrafo reactivo que informa estados: Listo, Consultando, Publicando, etc. -->
         <p id="estado">Listo</p>
+        <!-- Contenedor donde se renderizan las publicaciones (dinámicas o de la API) -->
         <div id="lista-publicaciones"></div>
       </section>
 
+      <!-- =======================================================================
+           SECCIÓN DE DIAGNÓSTICO DE FORMATOS DE DATOS
+           ---------------------------------------------------------------------
+           [TP: Día 15 · Clase Teórica 18: JSON, XML y persistencia en archivo - Parte 5]
+           Permite comprobar cómo dos formatos distintos (/datos/publicaciones.json
+           y /datos/publicaciones.xml) se interpretan en el cliente para alimentar
+           una misma vista homogénea sin duplicar lógica de renderizado.
+           ======================================================================= -->
       <section>
         <h2>Diagnóstico de formatos</h2>
         <button type="button" id="ver-json">Ver JSON</button>
         <button type="button" id="ver-xml">Ver XML</button>
+        <!-- Muestra el texto crudo recibido por la red (JSON formateado o XML con tags) -->
         <pre id="diagnostico-crudo"></pre>
+        <!-- Lista donde se renderizan los objetos parseados mediante mostrarDiagnostico() -->
         <ul id="diagnostico-lista"></ul>
       </section>
 
+      <!-- =======================================================================
+           FORMULARIO CONTROLADO DE ALTA CONTRATADA (POST /publicaciones)
+           ---------------------------------------------------------------------
+           [TP: Día 16 · Clase 16 de Teoría: Alta de publicaciones con validación en el servidor - Parte 2]
+           Define el contrato formal de datos (name, minlength, maxlength, required).
+           Configura action="/publicaciones" y method="post" para ser reutilizados
+           por JavaScript mediante fetch(formulario.action) sin recargar la página.
+           ======================================================================= -->
       <form id="pedido" action="/publicaciones" method="post">
+        <!-- Campo obligatorio según el contrato de datos del dominio -->
         <label>Autor <input name="autor" required /></label>
+        <!-- Validación declarativa HTML: entre 5 y 80 caracteres -->
         <label
           >Título <input name="titulo" minlength="5" maxlength="80" required
         /></label>
+        <!-- Validación declarativa HTML: entre 20 y 500 caracteres -->
         <label
           >Descripcion
           <textarea
@@ -119,6 +185,7 @@
             required
           ></textarea>
         </label>
+        <!-- Categorías permitidas acordadas en el contrato con el dominio -->
         <label
           >Categoría
           <select name="categoria" required>
@@ -131,9 +198,11 @@
         <button>Publicar</button>
       </form>
 
+      <!-- Región para comunicar el resultado visual (éxito o error) del envío -->
       <p id="salida"></p>
     </main>
 
+    <!-- [TP: Día 8 - Parte 1] Enlace al script principal del cliente como módulo ES -->
     <script type="module" src="js/app.js"></script>
   </body>
 </html>

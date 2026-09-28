@@ -5,12 +5,27 @@ import PublicacionVenta from "./PublicacionVenta.js";
 import { Publicacion } from "./Publicacion.js";
 
 export class RepositorioPublicaciones {
+  // ===========================================================================
+  // CONSTRUCTOR DEL REPOSITORIO CON PERSISTENCIA
+  // ---------------------------------------------------------------------------
+  // Recibe la ruta del archivo de persistencia en disco, inicializa un arreglo
+  // vacío para las publicaciones y establece el contador de identidad en 1.
+  // ===========================================================================
   constructor(ruta) {
     this.ruta = ruta;
     this.publicaciones = [];
     this.proximoId = 1;
   }
 
+  // ===========================================================================
+  // CARGA ASÍNCRONA DESDE EL ARCHIVO DE DISCO
+  // ---------------------------------------------------------------------------
+  // Lee el archivo JSON con readFile, parsea el contenido y reconstruye cada
+  // elemento como una instancia real de Publicacion, restaurando su estado,
+  // etiquetas y datos de moderación.
+  // Si el archivo no existe (error ENOENT), inicializa una colección vacía y
+  // genera el archivo inicial con guardar().
+  // ===========================================================================
   async cargar() {
     try {
       const texto = await readFile(this.ruta, "utf8");
@@ -42,6 +57,12 @@ export class RepositorioPublicaciones {
     }
   }
 
+  // ===========================================================================
+  // GUARDADO ASÍNCRONO EN DISCO
+  // ---------------------------------------------------------------------------
+  // Crea los directorios necesarios de forma recursiva con mkdir y serializa
+  // la colección completa a una cadena JSON formateada usando writeFile.
+  // ===========================================================================
   async guardar() {
     if (!this.ruta) return;
 
@@ -53,6 +74,13 @@ export class RepositorioPublicaciones {
     );
   }
 
+  // ===========================================================================
+  // CREAR / AGREGAR PUBLICACIÓN (CREATE)
+  // ---------------------------------------------------------------------------
+  // Asigna un identificador incremental automático (this.proximoId++), construye
+  // la instancia, la añade a la colección interna, persiste los cambios en disco
+  // mediante await this.guardar() y devuelve la publicación creada.
+  // ===========================================================================
   async agregar(autor, titulo, descripcion, categoria) {
     if (arguments.length === 1 && typeof autor === "object") {
       this.publicaciones.push(autor);
@@ -73,19 +101,38 @@ export class RepositorioPublicaciones {
     return publicacion;
   }
 
+  // ===========================================================================
+  // LEER / LISTAR COLECCIÓN (READ)
+  // ---------------------------------------------------------------------------
+  // Devuelve una copia superficial del arreglo interno ([...this.publicaciones])
+  // para proteger la colección de modificaciones externas directas.
+  // ===========================================================================
   listar() {
     return [...this.publicaciones];
   }
 
+  // ===========================================================================
+  // BUSCAR POR IDENTIFICADOR
+  // ---------------------------------------------------------------------------
+  // Utiliza Number(id) para asegurar la compatibilidad cuando el identificador
+  // llega en formato de cadena de texto (string) desde parámetros HTTP.
+  // ===========================================================================
   buscarPorId(id) {
-    return this.publicaciones.find((pub) => pub.id === id);
+    return this.publicaciones.find((pub) => pub.id === Number(id));
   }
 
+  // ===========================================================================
+  // ACTUALIZAR PUBLICACIÓN (UPDATE)
+  // ---------------------------------------------------------------------------
+  // Localiza el registro previo, lo reconstruye a través del constructor de
+  // Publicacion para aplicar nuevamente las reglas de validación de negocio,
+  // preserva el historial de moderación (reportes, etiquetas, estado, activa) y
+  // persiste los cambios en el archivo de disco.
+  // ===========================================================================
   async actualizar(id, cambios) {
     const anterior = this.buscarPorId(id);
     if (!anterior) throw new Error("Publicación inexistente");
 
-    // Reconstruimos a través del constructor para revalidar reglas de negocio
     const actualizada = new Publicacion(
       anterior.id,
       cambios.autor ?? anterior.autor,
@@ -94,9 +141,6 @@ export class RepositorioPublicaciones {
       cambios.categoria ?? anterior.categoria,
     );
 
-    // PASO 3: Decisión de diseño sobre estado, reportes, etiquetas y activa:
-    // Se conservan para no perder el historial de moderación ni alterar
-    // el ciclo de vida del recurso ante una simple edición de contenido.
     if (anterior.reportes !== undefined)
       actualizada.reportes = anterior.reportes;
     if (anterior.activa !== undefined) actualizada.activa = anterior.activa;
@@ -104,13 +148,18 @@ export class RepositorioPublicaciones {
     if (anterior.etiquetas !== undefined)
       actualizada.etiquetas = [...anterior.etiquetas];
 
-    // Reemplazamos la instancia en la misma posición de la colección
     this.publicaciones[this.publicaciones.indexOf(anterior)] = actualizada;
 
     await this.guardar();
     return actualizada;
   }
 
+  // ===========================================================================
+  // ELIMINAR PUBLICACIÓN (DELETE)
+  // ---------------------------------------------------------------------------
+  // Ubica la posición exacta de la publicación, la extrae con splice, persiste
+  // la colección actualizada en disco y devuelve true o false explícitamente.
+  // ===========================================================================
   async eliminar(id) {
     const publicacion = this.buscarPorId(id);
     if (!publicacion) return false;
@@ -178,6 +227,7 @@ export class RepositorioPublicaciones {
         publicacion.activa && publicacion.tieneEtiqueta(etiqueta),
     );
   }
+
   pendientesDeRevision() {
     return this.publicaciones.filter(
       (publicacion) => publicacion.activa && publicacion.requiereRevision(),

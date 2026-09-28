@@ -1,0 +1,333 @@
+================================================================================
+LINEA TEMPORAL DE EVOLUCION DEL PROYECTO: ARCHIVOS, CARPETAS Y REFACTORIZACION
+================================================================================
+
+FASE 1: DOMINIO BASE EN NODE.JS (SEMANA 1 · DIA 1)
+--------------------------------------------------------------------------------
+Contexto:
+Todo se ejecutaba por consola con Node.js en una única carpeta raíz (sin servidor,
+sin pruebas automatizadas, sin frontend).
+
+Estructura:
+gestor-publicaciones/
+├── package.json
+├── Publicacion.js
+└── main.js
+
+Archivos y cambios:
+* Publicacion.js (NACE):
+  - Como estaba:
+    constructor(titulo, descripcion, autor) {
+      this.titulo = titulo;
+      this.descripcion = descripcion;
+      this.autor = autor; // autor era un string plano
+      this.fechaPublicacion = new Date();
+      this.activa = true;
+    }
+    Metodos: mostrarResumen() (combinaba titulo y autor) y estaActiva().
+  - Por que cambio:
+    Un string plano no permitia asociar datos reales del usuario (como email).
+
+* main.js (NACE):
+  - Como estaba:
+    Script simple para ejecutar con "node main.js". Creaba un array suelto de
+    publicaciones, filtraba activas y probaba JSON.stringify(publicaciones).
+  - Por que cambio:
+    Un array suelto no encapsula la administracion de la coleccion.
+
+
+FASE 2: ASOCIACION Y PRIMER REPOSITORIO (SEMANA 1 · DIA 2)
+--------------------------------------------------------------------------------
+Contexto:
+Se crea la primera asociacion real entre objetos y se centraliza la lista en memoria.
+
+Estructura:
+gestor-publicaciones/
+├── Publicacion.js
+├── Usuario.js
+├── RepositorioPublicaciones.js
+└── main.js
+
+Archivos y cambios:
+* Usuario.js (NACE):
+  - Como estaba:
+    constructor(nombre, email) {
+      this.nombre = nombre;
+      this.email = email;
+      this.fechaRegistro = new Date();
+    }
+    Metodo: mostrarPerfil().
+
+* Publicacion.js (MODIFICADO):
+  - Como cambio:
+    El parametro autor pasa a recibir una instancia de Usuario (this.autor = autor).
+
+* RepositorioPublicaciones.js (NACE):
+  - Como estaba:
+    constructor() { this.publicaciones = []; }
+    Metodos: agregar(publicacion), buscarPorUsuario(nombre), filtrarActivas(), cantidadTotal().
+  - Por que cambio:
+    Solo administraba publicaciones genericas, sin distinguir ventas ni servicios.
+
+
+FASE 3: HERENCIA, POLIMORFISMO Y ROLES (SEMANAS 1 Y 2 · DIAS 3 A 5)
+--------------------------------------------------------------------------------
+Contexto:
+El dominio se especializa en subclases con extends y super(), evitando condicionales.
+
+Estructura:
+gestor-publicaciones/
+├── Publicacion.js
+├── PublicacionVenta.js
+├── PublicacionServicio.js
+├── Usuario.js
+├── RepositorioPublicaciones.js
+└── main.js
+
+Archivos y cambios:
+* PublicacionVenta.js (NACE):
+  - Como estaba:
+    extends Publicacion. constructor(titulo, descripcion, autor, precio) llamando
+    a super(titulo, descripcion, autor). Atributos propios: this.precio y this.stock = 1.
+    Sobreescribe mostrarResumen() reutilizando super.mostrarResumen() + precio.
+
+* PublicacionServicio.js (NACE):
+  - Como estaba:
+    extends Publicacion. constructor(titulo, descripcion, autor, modalidad, duracionMinutos).
+    Sobreescribe mostrarResumen() con super.mostrarResumen() + modalidad y minutos.
+
+* Usuario.js (MODIFICADO):
+  - Como cambio:
+    Se agrega auto-asociacion: this.contactos = [] y agregarContacto(otroUsuario).
+
+* Publicacion.js y PublicacionServicio.js (MODIFICADOS - ROLES):
+  - Como cambio:
+    En Publicacion se consolida this.autor; en PublicacionServicio se agrega this.cliente.
+    Ambos referencian a instancias de Usuario cumpliendo roles distintos.
+
+* RepositorioPublicaciones.js (MODIFICADO):
+  - Como cambio:
+    Suma metodos polimorficos: listarResumenes() (con .map) y filtrarPorTipo(claseConstructor).
+    (En el Dia 6 hereda temporalmente de EventEmitter con this.emit("publicacionAgregada"),
+    lo cual se retira al migrar a la web).
+
+
+FASE 4: LLEGADA AL NAVEGADOR (SEMANAS 2 Y 3 · DIAS 8 A 11)
+--------------------------------------------------------------------------------
+Contexto:
+Nace la interfaz web. El gestor pasa a responder a eventos del DOM.
+
+Estructura:
+gestor-publicaciones/
+├── public/
+│   ├── index.html
+│   └── js/
+│       └── app.js (migrado desde el main.js de consola)
+├── src/ (o en raiz temporalmente)
+└── ...
+
+Archivos y cambios:
+* public/index.html (NACE):
+  - Como estaba:
+    Formulario basico (#form-publicacion) con titulo, autor, email, tipo y campos-especificos.
+    Contenedor <output id="vista-previa"> y seccion #lista-publicaciones.
+  - Modificaciones (Dias 10-11):
+    Se incorporan spans de error (#error-titulo, #error-autor), el contador de caracteres
+    y botones para forzar recarga/error.
+
+* public/js/app.js (NACE desde main.js):
+  - Dia 8: Manejo directo de eventos input (vista previa), change (campos de venta/servicio),
+    focus/blur (ayuda contextual de email) y submit local con preventDefault().
+  - Dia 9: Incorpora delegacion de eventos sobre #lista-publicaciones con .closest()
+    para botones "dar de baja" y "destacar".
+  - Dias 10-11: Se agregan validaciones reactivas en dos tiempos (input silencioso vs blur ruidoso),
+    funcion esperar(ms) con promesas, y coordinacion de estados en try/catch/finally.
+
+
+FASE 5: MODULARIZACION DE CAPAS Y TESTING CON JEST (SEMANA 4 · DIA 12 Y TEORIA 13-14)
+--------------------------------------------------------------------------------
+Contexto:
+Se ordenan las carpetas por arquitectura: src/ para el dominio y tests/ para pruebas.
+
+Estructura:
+gestor-publicaciones/
+├── public/
+│   ├── index.html
+│   └── js/app.js
+├── src/
+│   ├── Publicacion.js
+│   ├── PublicacionVenta.js
+│   ├── PublicacionServicio.js
+│   ├── Usuario.js
+│   ├── RepositorioPublicaciones.js
+│   ├── Reporte.js
+│   └── Notificaciones.js
+└── tests/
+    ├── publicacion.test.js
+    ├── repositorio.test.js
+    ├── reporte.test.js
+    ├── notificaciones.test.js
+    └── asincronia.test.js
+
+Archivos y cambios:
+* Publicacion.js (MODIFICADO):
+  - Se agrega this.etiquetas = [], agregarEtiqueta(etiqueta) y tieneEtiqueta(etiqueta).
+  - Se agregan reportes de moderacion: this.reportes = [], this.usuariosReportaron = new Set(),
+    reportar(usuario, motivo), requiereRevision() (3 reportes) y this.estado = "pendiente".
+  - Se agrega el metodo asincrono revisar(servicioModeracion).
+
+* src/Reporte.js (NACE):
+  - Valida que el motivo no sea vacio (.trim()) y guarda usuario, motivo y fecha.
+
+* src/Notificaciones.js (NACE):
+  - NotificadorWeb y NotificadorEmail cumpliendo el contrato comun notificar(mensaje).
+  - GestorNotificaciones delegando polimorficamente sin conocer el tipo concreto.
+
+* tests/ (NACEN SUITES DE TEST CON JEST):
+  - publicacion.test.js: Estado activo, normalizacion de etiquetas, resumen polimorfico.
+  - notificaciones.test.js: Verificacion del contrato polimorfico usando test.each.
+  - asincronia.test.js: Verificacion de promesas con resolves, rejects y coherencia de estado.
+
+
+FASE 6: SERVIDOR HTTP Y ALTA CONTRATADA (CLASES 15 Y 16 DE TEORIA)
+--------------------------------------------------------------------------------
+Contexto:
+Se divide en dos procesos independientes por red: Backend (Node/Express) y Frontend (Navegador).
+
+Estructura:
+gestor-publicaciones/
+├── server.js
+├── public/
+│   ├── css/styles.css
+│   ├── index.html
+│   └── js/app.js
+├── src/...
+└── tests/...
+
+Archivos y cambios:
+* server.js (NACE):
+  - Como estaba:
+    Monta express, sirve public/ con express.static(path.join(__dirname, "public"))
+    y expone GET /estado-comunidad ejecutando repositorio.obtenerEstado().
+  - Por que cambio (Clase 16):
+    Solo consultaba texto plano. Se le agrega express.urlencoded() y la ruta
+    POST /publicaciones para dar de alta recursos reales.
+
+* src/Publicacion.js (MODIFICADO - CONTRATO ESTRICTO):
+  - Como estaba:
+    Aceptaba cualquier texto sin validar limites de caracteres.
+  - Como cambio:
+    Exporta CATEGORIAS_PERMITIDAS. Aplica el ciclo convertir -> validar -> asignar.
+    Lanza Error si autor esta vacio, titulo < 5 o > 80 caracteres, descripcion < 20 o > 500,
+    o categoria invalida.
+
+* public/index.html (MODIFICADO):
+  - Agrega el formulario formal <form id="pedido" action="/publicaciones" method="post">
+    con atributos required, minlength y maxlength.
+
+
+FASE 7: IDENTIDAD, OPERACIONES CRUD Y ROUTER MODULAR (CLASE 17 DE TEORIA)
+--------------------------------------------------------------------------------
+Contexto:
+Las publicaciones obtienen identificador numerico unico y las rutas se modularizan.
+
+Estructura:
+gestor-publicaciones/
+├── routes/
+│   └── publicaciones.routes.js
+├── server.js
+├── src/...
+└── tests/
+    └── repositorio.test.js
+
+Archivos y cambios:
+* src/Publicacion.js (MODIFICADO):
+  - Recibe id como primer argumento opcional: constructor(id, autor, titulo, ...).
+  - Publicacion no genera ni valida el id; solo lo almacena (this.id = id).
+  - PublicacionVenta y PublicacionServicio se adaptan para reenviarlo con super().
+
+* src/RepositorioPublicaciones.js (MODIFICADO - CRUD EN MEMORIA):
+  - Incorpora this.proximoId = 1.
+  - agregar(): Asigna this.proximoId++ a la nueva instancia.
+  - listar(): Devuelve copia superficial [...this.publicaciones] para encapsulamiento.
+  - buscarPorId(id): Busca con Number(id) para tolerar strings.
+  - actualizar(id, cambios): Reconstruye con new Publicacion(...) para revalidar reglas.
+  - eliminar(id): Remueve con splice y retorna booleano.
+
+* routes/publicaciones.routes.js (NACE):
+  - Fabrica crearRouterPublicaciones(repositorio) montando GET / y POST / bajo Express Router.
+
+* server.js (MODIFICADO):
+  - Monta el router modular con app.use("/publicaciones", crearRouterPublicaciones(repositorio)).
+
+* tests/repositorio.test.js (REESCRITO):
+  - Pruebas unitarias de CRUD en memoria usando beforeEach aislando cada caso.
+
+
+FASE 8: PERSISTENCIA EN ARCHIVO Y FORMATOS JSON/XML (CLASE 18 Y 18A DE TEORIA)
+--------------------------------------------------------------------------------
+Contexto:
+Los datos sobreviven a reinicios guardandose en disco, y la coleccion se expone en JSON y XML.
+
+Estructura Final del Proyecto:
+gestor-publicaciones/
+├── data/
+│   └── publicaciones.json
+├── public/
+│   ├── css/styles.css
+│   ├── js/app.js
+│   └── index.html
+├── routes/
+│   └── publicaciones.routes.js
+├── src/
+│   ├── formatos.js
+│   ├── Notificaciones.js
+│   ├── Publicacion.js
+│   ├── PublicacionServicio.js
+│   ├── PublicacionVenta.js
+│   ├── Reporte.js
+│   ├── RepositorioPublicaciones.js
+│   └── Usuario.js
+├── tests/
+│   ├── asincronia.test.js
+│   ├── formatos.test.js
+│   ├── notificaciones.test.js
+│   ├── persistencia.test.js
+│   ├── publicacion.test.js
+│   ├── reporte.test.js
+│   └── repositorio.test.js
+├── server.js
+└── package.json
+
+Archivos y cambios:
+* data/publicaciones.json (NACE):
+  - Archivo fisico donde se persiste la coleccion en formato JSON estructurado.
+
+* src/formatos.js (NACE):
+  - paraExponer(publicacion): Contrato publico (oculta la coleccion interna 'reportes').
+  - convertirAJSON / convertirDesdeJSON: Serializacion y parseo simetrico.
+  - escaparXML / publicacionAXML / convertirAXML: Conversion a XML con entidades de escape.
+
+* src/RepositorioPublicaciones.js (MODIFICADO A ASINCRONO CON FS):
+  - Recibe this.ruta en el constructor.
+  - cargar(): Lee con readFile, parsea JSON, reconstruye instancias de clase y recalcula proximoId.
+  - guardar(): Escribe en disco con writeFile formateado (indentado a 2 espacios).
+  - agregar, actualizar y eliminar se vuelven metodos async y terminan en await this.guardar().
+
+* server.js (MODIFICADO):
+  - Se ejecuta await repositorio.cargar() antes de escuchar en el puerto 3000.
+  - Agrega sembrado inicial de datos (seed) si la coleccion esta vacia al arrancar.
+  - Expone rutas de diagnostico: GET /datos/publicaciones.json y GET /datos/publicaciones.xml.
+
+* public/index.html y public/js/app.js (MODIFICADOS):
+  - Se agrega la seccion "Diagnostico de formatos".
+  - Los botones consumen JSON (con JSON.parse) y XML (con DOMParser), renderizando
+    ambos a traves de una unica funcion homogenea: mostrarDiagnostico().
+
+* tests/formatos.test.js (NACE):
+  - Pruebas de ida y vuelta en JSON, colecciones vacias y escapado de &, <, >, " en XML.
+
+* tests/persistencia.test.js (NACE):
+  - Pruebas de persistencia en disco completamente aisladas usando mkdtemp para carpetas
+    temporales, sin tocar jamas el archivo real data/publicaciones.json.
+================================================================================

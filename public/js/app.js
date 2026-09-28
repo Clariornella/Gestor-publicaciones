@@ -1,3 +1,10 @@
+// =============================================================================
+// CAPTURA DE ELEMENTOS DEL DOM
+// -----------------------------------------------------------------------------
+// [TP: Día 8 - Práctica: El gestor llega al navegador]
+// Centraliza las referencias a los nodos del HTML mediante querySelector para no
+// consultar el árbol del DOM reiteradamente en cada interacción.
+// =============================================================================
 const titulo = document.querySelector("#titulo");
 const autor = document.querySelector("#autor");
 const tipo = document.querySelector("#tipo");
@@ -9,6 +16,9 @@ const formulario = document.querySelector("#form-publicacion");
 const descripcion = document.querySelector("#descripcion");
 const listaPublicaciones = document.querySelector("#lista-publicaciones");
 const estado = document.querySelector("#estado");
+
+// [TP: Días 10-11 - Práctica: Asincronía y formularios reactivos]
+// Elementos para disparar acciones de carga asíncrona, control de errores y validación en tiempo real.
 const botonActualizar = document.querySelector("#btn-actualizar");
 const botonError = document.querySelector("#btn-error");
 const errorTitulo = document.querySelector("#error-titulo");
@@ -18,16 +28,31 @@ const enviar =
   document.querySelector("#form-publicacion button[type='submit']") ||
   document.querySelector("#btn-publicar");
 
+// [TP: Día 12 - Clase 15: Cliente, servidor y dominio]
+// Consulta de estado simple hacia el servidor Node/Express.
 const botonConsultar = document.querySelector("#consultar");
 const parrafoEstado = document.querySelector("#estado");
+
+// [TP: Día 16 - Clase 16: Alta de publicaciones con validación en el servidor]
+// Formulario secundario para envío y visualización de confirmación/error.
 const formularioPedido = document.querySelector("#pedido");
 const salida = document.querySelector("#salida");
+
+// [TP: Día 15 - Clase 18: JSON, XML y persistencia en archivo]
+// Elementos para diagnóstico y visualización de formatos estructurados de datos.
 const botonVerJSON = document.querySelector("#ver-json");
 const botonVerXML = document.querySelector("#ver-xml");
 const diagnosticoCrudo = document.querySelector("#diagnostico-crudo");
 const diagnosticoLista = document.querySelector("#diagnostico-lista");
 
-// Vista previa
+// =============================================================================
+// VISTA PREVIA INCREMENTAL
+// -----------------------------------------------------------------------------
+// [TP: Día 8 - Parte 3] y [TP: Días 10-11 - Parte 5]
+// Actualiza la vista previa del aviso y el contador de caracteres en tiempo real
+// mientras el usuario tipea ('input') o cambia de opción ('change'), sin instanciar
+// aún la clase del dominio.
+// =============================================================================
 function actualizarVistaPrevia() {
   if (contador) {
     contador.textContent = descripcion.value.length;
@@ -50,7 +75,14 @@ if (tipo) {
 }
 actualizarVistaPrevia();
 
-// Campos específicos según tipo
+// =============================================================================
+// MODIFICACIÓN DINÁMICA DE CAMPOS SEGÚN TIPO
+// -----------------------------------------------------------------------------
+// [TP: Día 8 - Parte 4: Change adapta el formulario]
+// Según la selección del <select id="tipo">, inyecta en el contenedor HTML los
+// campos específicos requeridos: "precio" para venta o "modalidad/duración" para servicio.
+// Al crearse el input dinámicamente, le enlaza sus validadores de evento 'input' y 'blur'.
+// =============================================================================
 function actualizarCamposEspecificos() {
   if (!camposEspecificos || !tipo) return;
 
@@ -93,7 +125,13 @@ if (tipo) {
   actualizarCamposEspecificos();
 }
 
-// Ayuda email
+// =============================================================================
+// AYUDA CONTEXTUAL PARA INPUTS
+// -----------------------------------------------------------------------------
+// [TP: Día 8 - Parte 5: Focus y blur ofrecen ayuda]
+// Modifica la interfaz mostrando instrucciones visuales cuando el usuario entra
+// ('focus') al campo y retirándolas cuando sale ('blur').
+// =============================================================================
 if (email && ayudaEmail) {
   email.addEventListener("focus", () => {
     ayudaEmail.textContent = "Usá un email válido del autor";
@@ -103,7 +141,13 @@ if (email && ayudaEmail) {
   });
 }
 
-// Creación del objeto de dominio local (mantenido)
+// =============================================================================
+// DOMINIO LOCAL: CREACIÓN Y RENDERIZADO
+// -----------------------------------------------------------------------------
+// [TP: Día 8 - Parte 6] y [TP: Día 9 - Práctica: Eventos sobre publicaciones dinámicas]
+// Instanciación polimórfica en el cliente (PublicacionVenta / PublicacionServicio) y
+// renderizado dentro de <article> con atributos personalizados (dataset) data-id y data-accion.
+// =============================================================================
 function crearPublicacionDesdeFormulario() {
   const usuario = new Usuario(autor.value, email ? email.value : "");
   if (tipo.value === "venta") {
@@ -126,7 +170,6 @@ function crearPublicacionDesdeFormulario() {
   );
 }
 
-// Renderizar publicaciones local (mantenido)
 function renderizarPublicaciones() {
   if (!listaPublicaciones || typeof repositorio === "undefined") return;
   listaPublicaciones.innerHTML = "";
@@ -165,11 +208,23 @@ function renderizarPublicaciones() {
   });
 }
 
+// =============================================================================
+// FUNCIÓN AUXILIAR DE ESPERA
+// -----------------------------------------------------------------------------
+// [TP: Días 10-11 - Parte 1: Simulamos un servidor que tarda en responder]
+// Envuelve un setTimeout en una Promesa para poder utilizar retardos artificiales con await.
+// =============================================================================
 function esperar(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// PASO 5D (Clase 17): Carga asíncrona desde GET /publicaciones
+// =============================================================================
+// CARGA ASÍNCRONA DESDE EL BACKEND
+// -----------------------------------------------------------------------------
+// [TP: Día 14 - Clase 17: Repositorios y operaciones CRUD - Paso 5D]
+// Realiza una petición GET al Router de Express (/publicaciones) para obtener el JSON
+// y dibuja la lista en el DOM con template literals sin recargar la página.
+// =============================================================================
 async function cargarPublicaciones() {
   try {
     const respuesta = await fetch("/publicaciones");
@@ -195,12 +250,18 @@ async function cargarPublicaciones() {
   }
 }
 
-// Carga inicial
+// Carga inicial al parsear el script
 cargarPublicaciones();
 
-// PASO 5E (Clase 17): Manejo del formulario enviando al backend por fetch
+// =============================================================================
+// ENVÍO DE FORMULARIO CON FETCH Y SIN RECARGA
+// -----------------------------------------------------------------------------
+// [TP: Día 14 - Clase 17 - Paso 5E] y [TP: Días 10-11 - Parte 7]
+// Intercepta el submit con preventDefault(), valida campos, desactiva el botón
+// para evitar envíos dobles, hace un POST en JSON al backend y refresca la lista.
+// =============================================================================
 async function manejarEnvio(evento) {
-  // Evita la navegación/recarga del navegador
+  // Evita la navegación/recarga tradicional del navegador
   evento.preventDefault();
 
   if (!validarTitulo(true) || !validarAutor(true)) {
@@ -242,6 +303,7 @@ async function manejarEnvio(evento) {
     console.error("Error al enviar la publicación:", error);
     if (estado) estado.textContent = `Error de red: ${error.message}`;
   } finally {
+    // Se ejecuta siempre, rehabilitando el botón según la validez del form
     actualizarEstadoFormulario();
   }
 }
@@ -250,6 +312,13 @@ if (formulario) {
   formulario.addEventListener("submit", manejarEnvio);
 }
 
+// =============================================================================
+// ENVÍO DE FORMULARIO SECUNDARIO CON FORMDATA
+// -----------------------------------------------------------------------------
+// [TP: Día 16 - Clase 16: Alta de publicaciones con validación en el servidor]
+// Utiliza new FormData(formularioPedido) y Object.fromEntries para capturar el
+// contrato de datos del formulario HTML y enviarlo por fetch sin recarga.
+// =============================================================================
 if (formularioPedido) {
   formularioPedido.addEventListener("submit", async (evento) => {
     evento.preventDefault();
@@ -276,6 +345,14 @@ if (formularioPedido) {
   });
 }
 
+// =============================================================================
+// DELEGACIÓN DE EVENTOS SOBRE LA LISTA DINÁMICA
+// -----------------------------------------------------------------------------
+// [TP: Día 9 - Partes 2, 3 y 4: Encontrar el control correcto y conectar con el dominio]
+// En lugar de agregar un listener a cada botón individual, se escucha el clic en el
+// contenedor padre (#lista-publicaciones). Con .closest() detecta el botón presionado
+// y su data-accion ('baja' o 'destacar') para ejecutar el método del dominio local.
+// =============================================================================
 function manejarAccion(evento) {
   const boton = evento.target.closest("button[data-accion]");
   if (!boton || !listaPublicaciones.contains(boton)) return;
@@ -298,13 +375,20 @@ if (listaPublicaciones) {
   listaPublicaciones.addEventListener("click", manejarAccion);
 }
 
-// Botones auxiliares
+// Botón para forzar recarga de publicaciones
 if (botonActualizar) {
   botonActualizar.addEventListener("click", () => cargarPublicaciones());
 }
 
-// --- Validaciones con input y blur ---
+// =============================================================================
+// VALIDACIONES REACTIVAS EN DOS TIEMPOS (INPUT vs BLUR)
+// -----------------------------------------------------------------------------
+// [TP: Días 10-11 - Partes 4 y 6: Validación sin interrumpir y habilitación del botón]
+// Con 'input', mostrarError es false: valida en silencio y aplica clases CSS.
+// Con 'blur', mostrarError es true: si está inválido, despliega el texto de error.
+// =============================================================================
 
+// Validación de Título (mínimo 5 caracteres)
 function validarTitulo(mostrarError = true) {
   if (!titulo) return false;
   const valido = titulo.value.trim().length >= 5;
@@ -358,6 +442,7 @@ function validarPrecio(mostrarError = true) {
   return valido;
 }
 
+// Comprueba la validez global de todos los campos obligatorios
 function formularioValido() {
   if (!titulo || !autor) return false;
   const precioInput = document.querySelector("#precio");
@@ -373,6 +458,7 @@ function formularioValido() {
   );
 }
 
+// Habilita o deshabilita el botón de envío según formularioValido()
 function actualizarEstadoFormulario() {
   if (enviar) {
     enviar.disabled = !formularioValido();
@@ -383,6 +469,13 @@ if (formulario) {
   formulario.addEventListener("input", actualizarEstadoFormulario);
 }
 
+// =============================================================================
+// CONSULTA ASÍNCRONA SIMPLE AL SERVIDOR
+// -----------------------------------------------------------------------------
+// [TP: Día 12 - Clase 15 - Parte 3: El navegador inicia la solicitud]
+// Envía un GET con fetch a /estado-comunidad y escribe el texto plano en el DOM,
+// manejando errores con try/catch sin que la página colapse.
+// =============================================================================
 if (botonConsultar) {
   botonConsultar.addEventListener("click", async () => {
     if (parrafoEstado) parrafoEstado.textContent = "Consultando...";
@@ -403,6 +496,15 @@ if (botonConsultar) {
   });
 }
 
+// =============================================================================
+// DIAGNÓSTICO Y PROCESAMIENTO DE FORMATOS (JSON Y XML)
+// -----------------------------------------------------------------------------
+// [TP: Día 15 - Clase 18: JSON, XML y persistencia en archivo - Parte 5]
+// Una única función de renderizado (mostrarDiagnostico) recibe objetos simples.
+// - Con JSON: utiliza JSON.parse(texto).
+// - Con XML: utiliza new DOMParser().parseFromString(...) y querySelectorAll para
+//   mapear nodos XML a la misma estructura de objetos.
+// =============================================================================
 function mostrarDiagnostico(publicaciones) {
   if (!diagnosticoLista) return;
 
